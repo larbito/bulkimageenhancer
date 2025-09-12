@@ -31,11 +31,26 @@ export default function NewProjectPage() {
         body: JSON.stringify({ title, pagesRequested: pages }) 
       });
       
-      if (!res.ok) throw new Error(`Request failed: ${res.status}`);
+      if (!res.ok) {
+        // If API is not available, create a demo project
+        if (res.status === 404) {
+          const demoProject = { id: 'demo_' + Date.now(), title, pagesRequested: pages };
+          window.location.href = `/projects/${demoProject.id}/styles`;
+          return;
+        }
+        throw new Error(`Request failed: ${res.status}`);
+      }
+      
       const project = await res.json();
       window.location.href = `/projects/${project.id}/styles`;
     } catch (e: any) { 
-      setError(e.message || 'Failed to create project'); 
+      // If fetch fails completely (no Railway worker), create demo project
+      if (e.message.includes('fetch')) {
+        const demoProject = { id: 'demo_' + Date.now(), title, pagesRequested: pages };
+        window.location.href = `/projects/${demoProject.id}/styles`;
+        return;
+      }
+      setError('Backend not available yet. Please deploy the Railway worker first.'); 
     } finally { 
       setLoading(false); 
     }
@@ -43,6 +58,16 @@ export default function NewProjectPage() {
 
   return (
     <div className="max-w-4xl mx-auto animate-fadeIn">
+      {/* Backend Status Banner */}
+      <div className="mb-8 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-2xl">
+        <div className="flex items-center gap-3">
+          <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
+          <div className="text-sm">
+            <strong>Demo Mode:</strong> Backend worker not deployed yet. The UI will work with mock data for demonstration.
+          </div>
+        </div>
+      </div>
+      
       <div className="text-center mb-12">
         <h1 className="text-4xl md:text-5xl font-bold mb-4">
           Create Your <span className="gradient-text">Coloring Book</span>

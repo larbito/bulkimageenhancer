@@ -4,8 +4,5 @@ nixPkgs = ['nodejs_18']
 [phases.install]
 cmds = ['cd worker && npm install']
 
-[phases.build] 
-cmds = ['cd worker && npm run build']
-
 [start]
 cmd = 'cd worker && npm start'

@@ -31,14 +31,14 @@ export default function RenderPage() {
   }, [job]);
 
   return (
-    <main>
-      <h2>Rendering</h2>
-      <button onClick={start}>Start render</button>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+    <main className="py-6">
+      <h2 className="text-2xl font-semibold">Rendering</h2>
+      <button onClick={start} className="mt-3 px-3 py-2 text-sm rounded-md bg-brand-600 text-white">Start render</button>
+      {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
       {job && (
-        <div style={{ marginTop: 12 }}>
+        <div className="mt-3 text-sm">
           <div>Status: {job.status}</div>
-          {job.errorText && <div style={{ color: 'red' }}>Error: {job.errorText}</div>}
+          {job.errorText && <div className="text-red-600">Error: {job.errorText}</div>}
         </div>
       )}
     </main>

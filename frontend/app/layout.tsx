@@ -10,8 +10,8 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body style={{ fontFamily: 'system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif' }}>
-        <div style={{ maxWidth: 960, margin: '0 auto', padding: 24 }}>
+      <body className="min-h-screen text-slate-800">
+        <div className="max-w-6xl mx-auto px-6 py-6">
           {children}
         </div>
       </body>

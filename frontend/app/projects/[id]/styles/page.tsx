@@ -45,19 +45,21 @@ export default function StyleChooserPage() {
   };
 
   return (
-    <main>
-      <h2>Pick a style</h2>
-      <button onClick={load} disabled={loading}>
-        {loading ? "Loading..." : "Regenerate"}
-      </button>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 16, marginTop: 16 }}>
+    <main className="py-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-semibold">Pick a style</h2>
+        <button onClick={load} disabled={loading} className="text-sm text-brand-600">
+          {loading ? "Loading..." : "Regenerate"}
+        </button>
+      </div>
+      {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 mt-4">
         {candidates.map((c) => (
-          <div key={c.id} style={{ border: '1px solid #ddd', borderRadius: 8, overflow: 'hidden' }}>
-            <img src={c.thumbnailUrl} alt="style" style={{ width: '100%', height: 220, objectFit: 'cover' }} />
-            <div style={{ padding: 12 }}>
-              <div style={{ fontSize: 14, color: '#555', height: 64, overflow: 'auto' }}>{c.promptText}</div>
-              <button onClick={() => select(c.id)} style={{ marginTop: 8 }}>Select</button>
+          <div key={c.id} className="rounded-lg border overflow-hidden bg-white">
+            <img src={c.thumbnailUrl} alt="style" className="w-full h-56 object-cover" />
+            <div className="p-3">
+              <div className="text-sm text-slate-600 h-16 overflow-auto">{c.promptText}</div>
+              <button onClick={() => select(c.id)} className="mt-2 inline-flex px-3 py-2 text-sm rounded-md bg-brand-600 text-white">Select</button>
             </div>
           </div>
         ))}

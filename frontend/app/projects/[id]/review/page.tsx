@@ -28,18 +28,18 @@ export default function ReviewPage() {
   useEffect(() => { if (projectId) void load(); }, [projectId]);
 
   return (
-    <main>
-      <h2>Review and export</h2>
-      <div style={{ marginBottom: 12 }}>
-        <button onClick={buildZip}>Build ZIP</button>
+    <main className="py-6">
+      <h2 className="text-2xl font-semibold">Review and export</h2>
+      <div className="mb-3 flex items-center gap-3">
+        <button onClick={buildZip} className="px-3 py-2 text-sm rounded-md border">Build ZIP</button>
         {zipUrl && (
-          <a href={zipUrl} style={{ marginLeft: 12 }} target="_blank" rel="noreferrer">Download ZIP</a>
+          <a href={zipUrl} className="text-brand-600 text-sm" target="_blank" rel="noreferrer">Download ZIP</a>
         )}
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 12 }}>
+      <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
         {finals.map((img) => (
           <a key={img.id} href={img.url} target="_blank" rel="noreferrer">
-            <img src={img.url} style={{ width: '100%', height: 'auto', background: '#fff' }} />
+            <img src={img.url} className="w-full h-auto bg-white" />
           </a>
         ))}
       </div>

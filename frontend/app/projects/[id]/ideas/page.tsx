@@ -59,22 +59,21 @@ export default function IdeasPage() {
   useEffect(() => { if (projectId) void loadIdeas(); }, [projectId]);
 
   return (
-    <main>
-      <h2>Ideas</h2>
-      <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-        <button onClick={generate} disabled={loading}>Generate ideas</button>
-        <label>
-          Page count
-          <input type="number" min={4} max={60} value={count} onChange={(e) => setCount(parseInt(e.target.value || '10', 10))} style={{ marginLeft: 8, width: 100 }} />
+    <main className="py-6">
+      <h2 className="text-2xl font-semibold">Ideas</h2>
+      <div className="flex flex-wrap items-center gap-3 mt-3">
+        <button onClick={generate} disabled={loading} className="px-3 py-2 text-sm rounded-md border">Generate ideas</button>
+        <label className="text-sm flex items-center gap-2">Page count
+          <input type="number" min={4} max={60} value={count} onChange={(e) => setCount(parseInt(e.target.value || '10', 10))} className="border rounded-md px-2 py-1 w-24" />
         </label>
-        <button onClick={save} disabled={loading}>Save and continue</button>
+        <button onClick={save} disabled={loading} className="px-3 py-2 text-sm rounded-md bg-brand-600 text-white">Save and continue</button>
       </div>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      <ol style={{ marginTop: 16, display: 'grid', gap: 8 }}>
+      {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
+      <ol className="mt-4 grid gap-2">
         {ideas.map((idea, idx) => (
-          <li key={idea.id || idx} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <span style={{ width: 28, textAlign: 'right' }}>{idx + 1}.</span>
-            <input value={idea.ideaText} onChange={(e) => setIdeas(prev => prev.map(p => p.id === idea.id ? { ...p, ideaText: e.target.value } : p))} style={{ flex: 1, padding: 8 }} />
+          <li key={idea.id || idx} className="flex items-center gap-2">
+            <span className="w-8 text-right">{idx + 1}.</span>
+            <input value={idea.ideaText} onChange={(e) => setIdeas(prev => prev.map(p => p.id === idea.id ? { ...p, ideaText: e.target.value } : p))} className="border rounded-md px-3 py-2 flex-1" />
           </li>
         ))}
       </ol>

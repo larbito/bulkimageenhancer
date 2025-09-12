@@ -5,7 +5,7 @@ nixPkgs = ['nodejs_18']
 cmds = ['cd worker && npm install']
 
 [phases.build] 
-cmds = ['cd worker && npm run railway:build']
+cmds = ['cd worker && npm run build']
 
 [start]
-cmd = 'cd worker && npm run railway:start'
+cmd = 'cd worker && npm start'

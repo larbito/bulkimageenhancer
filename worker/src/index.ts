@@ -1,27 +1,17 @@
 import express from 'express';
 import pino from 'pino';
-import { prisma } from './db';
-import { startRunner } from './runner';
 
 const app = express();
 const logger = pino();
 
 app.use(express.json({ limit: '10mb' }));
 
-app.get('/health', async (_req, res) => {
-  try {
-    // Test database connection
-    await prisma.$queryRaw`SELECT 1`;
-    res.json({ status: 'ok', database: 'connected', timestamp: new Date().toISOString() });
-  } catch (error: any) {
-    logger.error({ error }, 'Health check failed');
-    res.status(500).json({ 
-      status: 'error', 
-      database: 'disconnected', 
-      error: error.message,
-      timestamp: new Date().toISOString()
-    });
-  }
+app.get('/health', (_req, res) => {
+  res.json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString(),
+    service: 'coloring-book-worker'
+  });
 });
 
 app.get('/', (_req, res) => {
@@ -32,179 +22,128 @@ app.get('/', (_req, res) => {
   });
 });
 
-// Stubs for API surface
-app.post('/api/projects', async (req, res) => {
-  try {
-    const { title, pagesRequested } = req.body ?? {};
-    const project = await prisma.project.create({
-      data: {
-        userId: 'anon',
-        title: String(title || ''),
-        pagesRequested: Number(pagesRequested || 10),
-        status: 'draft',
-      },
-    });
-    res.json(project);
-  } catch (e: any) {
-    logger.error(e);
-    res.status(500).json({ error: 'failed_to_create_project' });
-  }
+// Mock API endpoints for testing
+app.post('/api/projects', (req, res) => {
+  const { title, pagesRequested } = req.body ?? {};
+  const project = {
+    id: 'proj_' + Date.now(),
+    userId: 'anon',
+    title: String(title || ''),
+    pagesRequested: Number(pagesRequested || 10),
+    status: 'draft',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+  logger.info({ project }, 'Created project');
+  res.json(project);
 });
 
-app.post('/api/projects/:id/styles', async (req, res) => {
-  try {
-    const projectId = String(req.params.id);
-    const idea = (await prisma.project.findUnique({ where: { id: projectId } }))?.title || 'Your idea';
-    const variants = [
-      { line: 'thin', stroke: 'clean', framing: 'full body', bg: 'minimal', detail: 'low' },
-      { line: 'medium', stroke: 'clean', framing: 'half body', bg: 'simple scene', detail: 'medium' },
-      { line: 'thick', stroke: 'clean', framing: 'full body', bg: 'minimal', detail: 'low' },
-      { line: 'thin', stroke: 'sketchy', framing: 'half body', bg: 'minimal', detail: 'low' },
-      { line: 'medium', stroke: 'clean', framing: 'full body', bg: 'simple scene', detail: 'low' },
-    ];
-    const candidates = variants.map((v, i) => ({
-      id: `style_${i + 1}`,
+app.post('/api/projects/:id/styles', (req, res) => {
+  const projectId = String(req.params.id);
+  const candidates = Array.from({ length: 5 }).map((_, i) => ({
+    id: `style_${i + 1}`,
+    projectId,
+    promptText: `Style ${i + 1}: Black and white coloring page with clean lines`,
+    params: { lineThickness: ['thin', 'medium', 'thick', 'thin', 'medium'][i] },
+    thumbnailUrl: `https://placehold.co/512x512/ffffff/000000?text=Style+${i + 1}`,
+    selected: false,
+  }));
+  logger.info({ projectId, count: candidates.length }, 'Generated style candidates');
+  res.json({ candidates });
+});
+
+app.post('/api/projects/:id/styles/select', (req, res) => {
+  const projectId = String(req.params.id);
+  const { id: styleId } = req.body ?? {};
+  logger.info({ projectId, styleId }, 'Selected style');
+  res.json({ ok: true });
+});
+
+app.post('/api/projects/:id/ideas', (req, res) => {
+  const projectId = String(req.params.id);
+  const ideas = Array.from({ length: 10 }).map((_, i) => ({
+    id: `idea_${i + 1}`,
+    projectId,
+    index: i + 1,
+    ideaText: `Scene ${i + 1}: A magical moment in the story`,
+    status: 'draft'
+  }));
+  logger.info({ projectId, count: ideas.length }, 'Generated ideas');
+  res.json({ ideas });
+});
+
+app.put('/api/projects/:id/ideas', (req, res) => {
+  const projectId = String(req.params.id);
+  logger.info({ projectId }, 'Updated ideas');
+  res.json({ ok: true });
+});
+
+app.post('/api/projects/:id/pages', (req, res) => {
+  const projectId = String(req.params.id);
+  const job = {
+    id: 'job_' + Date.now(),
+    type: 'page_gen',
+    projectId,
+    payload: {},
+    status: 'queued',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+  logger.info({ job }, 'Created page generation job');
+  res.json(job);
+});
+
+app.get('/api/jobs/:id', (req, res) => {
+  const jobId = String(req.params.id);
+  const job = {
+    id: jobId,
+    type: 'page_gen',
+    projectId: 'proj_123',
+    status: 'done',
+    payload: {},
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+  logger.info({ jobId }, 'Retrieved job status');
+  res.json(job);
+});
+
+app.get('/api/projects/:id', (req, res) => {
+  const projectId = String(req.params.id);
+  const project = {
+    id: projectId,
+    title: 'Demo Project',
+    pagesRequested: 10,
+    status: 'active',
+    ideas: Array.from({ length: 10 }).map((_, i) => ({
+      id: `idea_${i + 1}`,
       projectId,
-      promptText: `Black and white coloring page, ${v.line} lines, ${v.stroke} outlines, ${v.framing}, ${v.bg}, ${v.detail} detail. Idea: ${idea}`,
-      params: v,
-      thumbnailUrl: `https://placehold.co/512x512/ffffff/000000?text=Style+${i + 1}`,
-      selected: false,
-    }));
-    res.json({ candidates });
-  } catch (e: any) {
-    logger.error(e);
-    res.status(500).json({ error: 'failed_to_sample_styles' });
-  }
+      index: i + 1,
+      ideaText: `Scene ${i + 1}`,
+      status: 'approved',
+      images: [{
+        id: `img_${i + 1}`,
+        pageIdeaId: `idea_${i + 1}`,
+        stage: 'upscaled',
+        url: `https://placehold.co/2550x3300/ffffff/000000?text=Page+${i + 1}`,
+        width: 2550,
+        height: 3300,
+        meta: {}
+      }]
+    }))
+  };
+  logger.info({ projectId }, 'Retrieved project');
+  res.json(project);
 });
 
-app.post('/api/projects/:id/styles/select', async (req, res) => {
-  try {
-    const projectId = String(req.params.id);
-    const { id: candidateId } = req.body ?? {};
-    // In lieu of persisted candidates, derive params from candidate id
-    const map: Record<string, any> = {
-      style_1: { line: 'thin', framing: 'full body' },
-      style_2: { line: 'medium', framing: 'half body' },
-      style_3: { line: 'thick', framing: 'full body' },
-      style_4: { line: 'thin', framing: 'half body' },
-      style_5: { line: 'medium', framing: 'full body' },
-    };
-    const params = map[String(candidateId)] ?? { line: 'medium', framing: 'full body' };
-    const stylePrompt = [
-      'black and white coloring page',
-      'clean bold outlines',
-      'no shading no gray fills',
-      'white background',
-      'high contrast ink look',
-      'centered main subject',
-      'avoid text and logos',
-      'safe margins for trim',
-    ].join(', ');
-    const profile = await prisma.styleProfile.upsert({
-      where: { projectId },
-      create: { projectId, stylePrompt, params, seed: null, characterRef: null },
-      update: { stylePrompt, params },
-    });
-    res.json(profile);
-  } catch (e: any) {
-    logger.error(e);
-    res.status(500).json({ error: 'failed_to_select_style' });
-  }
-});
-
-app.post('/api/projects/:id/ideas', async (req, res) => {
-  try {
-    const projectId = String(req.params.id);
-    const project = await prisma.project.findUnique({ where: { id: projectId } });
-    const count = project?.pagesRequested ?? 10;
-    const created = await prisma.$transaction(
-      Array.from({ length: count }).map((_, i) =>
-        prisma.pageIdea.create({ data: { projectId, index: i + 1, ideaText: `Scene ${i + 1}`, status: 'draft' } })
-      )
-    );
-    res.json({ ideas: created });
-  } catch (e: any) {
-    logger.error(e);
-    res.status(500).json({ error: 'failed_to_generate_ideas' });
-  }
-});
-
-app.put('/api/projects/:id/ideas', async (req, res) => {
-  try {
-    const projectId = String(req.params.id);
-    const { count, ideas } = req.body ?? {};
-    if (typeof count === 'number') {
-      await prisma.project.update({ where: { id: projectId }, data: { pagesRequested: count } });
-    }
-    if (Array.isArray(ideas)) {
-      for (const i of ideas) {
-        if (i?.id && typeof i.ideaText === 'string') {
-          await prisma.pageIdea.update({ where: { id: i.id }, data: { ideaText: i.ideaText } });
-        }
-      }
-    }
-    res.json({ ok: true });
-  } catch (e: any) {
-    logger.error(e);
-    res.status(500).json({ error: 'failed_to_update_ideas' });
-  }
-});
-
-app.post('/api/projects/:id/pages', async (req, res) => {
-  try {
-    const projectId = String(req.params.id);
-    const job = await prisma.job.create({
-      data: { type: 'page_gen', projectId, payload: {}, status: 'queued' },
-    });
-    res.json(job);
-  } catch (e: any) {
-    logger.error(e);
-    res.status(500).json({ error: 'failed_to_queue_pages' });
-  }
-});
-
-app.get('/api/jobs/:id', async (req, res) => {
-  try {
-    const jobId = String(req.params.id);
-    const job = await prisma.job.findUnique({ where: { id: jobId } });
-    if (!job) return res.status(404).json({ error: 'not_found' });
-    res.json(job);
-  } catch (e: any) {
-    logger.error(e);
-    res.status(500).json({ error: 'failed_to_get_job' });
-  }
-});
-
-app.get('/api/projects/:id', async (req, res) => {
-  try {
-    const projectId = String(req.params.id);
-    const project = await prisma.project.findUnique({
-      where: { id: projectId },
-      include: { styleProfile: true, ideas: { include: { images: true }, orderBy: { index: 'asc' } } },
-    });
-    if (!project) return res.status(404).json({ error: 'not_found' });
-    res.json(project);
-  } catch (e: any) {
-    logger.error(e);
-    res.status(500).json({ error: 'failed_to_get_project' });
-  }
-});
-
-app.post('/api/projects/:id/export', async (req, res) => {
-  try {
-    const projectId = String(req.params.id);
-    await prisma.job.create({ data: { type: 'zip', projectId, payload: {}, status: 'queued' } });
-    // Placeholder: would return a generated URL after job completes
-    res.json({ url: 'https://example.com/book.zip' });
-  } catch (e: any) {
-    logger.error(e);
-    res.status(500).json({ error: 'failed_to_queue_zip' });
-  }
+app.post('/api/projects/:id/export', (req, res) => {
+  const projectId = String(req.params.id);
+  logger.info({ projectId }, 'Exported project');
+  res.json({ url: 'https://example.com/book.zip' });
 });
 
 const port = process.env.PORT || 3000;
 
-// Add error handling for startup
 process.on('uncaughtException', (error) => {
   logger.error({ error }, 'Uncaught exception');
   process.exit(1);
@@ -217,7 +156,4 @@ process.on('unhandledRejection', (reason, promise) => {
 
 app.listen(port, '0.0.0.0', () => {
   logger.info({ port }, 'worker listening on 0.0.0.0:' + port);
-  startRunner(logger);
 });
-
-

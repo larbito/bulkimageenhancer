@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Navbar, Footer, Button, Card } from "@/components/ui";
+import Link from "next/link";
 
 export default function Page() {
   const [title, setTitle] = useState("");
@@ -64,6 +65,9 @@ export default function Page() {
               <p className="text-sm text-slate-600 mt-2">{f.d}</p>
             </Card>
           ))}
+        </section>
+        <section className="mt-16">
+          <Link href="/app/new" className="px-5 py-3 rounded-xl bg-primary text-primary-foreground">Start now</Link>
         </section>
       </main>
       <Footer />

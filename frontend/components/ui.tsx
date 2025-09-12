@@ -23,14 +23,14 @@ export function Button(props: React.ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
     <button
       {...rest}
-      className={"inline-flex items-center justify-center rounded-md bg-brand-600 text-white px-4 py-2 text-sm font-medium hover:bg-brand-700 transition " + className}
+      className={"inline-flex items-center justify-center rounded-xl bg-primary text-primary-foreground px-4 py-2 text-sm font-medium hover:opacity-90 transition " + className}
     />
   );
 }
 
 export function Card(props: React.HTMLAttributes<HTMLDivElement>) {
   const { className = '', ...rest } = props;
-  return <div {...rest} className={"rounded-lg border border-slate-200 bg-white shadow-sm " + className} />;
+  return <div {...rest} className={"rounded-2xl border bg-card shadow-soft " + className} />;
 }
 
 

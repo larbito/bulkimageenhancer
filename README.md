@@ -1,61 +1,65 @@
-## Bulk Image Enhancer (Replicate)
+## Coloring Book Studio
 
-CLI tool to enhance/upscale images in bulk (up to 100 at a time) using Replicate models (default: Real-ESRGAN).
+Full-stack app to generate full coloring books from a user idea.
 
-### Requirements
-- Python 3.9+
-- Replicate API token
+### Tech
 
-### Setup
-1. Create and activate a virtualenv (recommended)
-2. Install dependencies:
+- Next.js App Router on Vercel (UI + API proxy)
+- Node Worker on Railway (owns keys, long-running jobs)
+- Postgres on Neon (via Prisma)
+- Storage on Vercel Blob or S3 compatible
+- Queue via Upstash Redis or Postgres job table
+- OpenAI Images for base renders, Replicate Real-ESRGAN for upscaling
+
+### Local dev
+
+Frontend:
 ```bash
-pip install -r requirements.txt
-```
-3. Copy `.env.example` to `.env` and set your Replicate API token:
-```bash
-echo 'REPLICATE_API_TOKEN=your_token_here' > .env
-```
-
-### Usage
-```bash
-python -m src.cli --input ./input_images --output ./enhanced \
-  --model nightmareai/real-esrgan --scale 2 --max-workers 8 --limit 100
+cd frontend
+npm i
+npm run dev
 ```
 
-Options:
-- `--input` (folder): directory with images (.jpg, .jpeg, .png, .webp, .bmp, .tiff)
-- `--output` (folder): destination directory
-- `--model`: Replicate model slug to use (default `tencentarc/real-esrgan`)
-- `--model-version`: specific version id if you want to pin
-- `--scale`: upscaling factor 2-4
-- `--no-face-enhance`: disable face enhancement if supported by the model
-- `--max-workers`: concurrency level
-- `--limit`: cap number of images (default 100)
-
-### Notes
-- Default model is Real-ESRGAN which is robust for upscaling. You can switch to another upscaling/enhancement model on Replicate if desired.
-- The tool downloads the returned URL from Replicate and saves files with `_enhanced` suffix.
-
-### Example
+Worker:
 ```bash
-python -m src.cli --input ./samples --output ./out --limit 50
+cd worker
+npm i
+npm run dev
 ```
 
-## Deploying
+### Env vars
 
-### Backend on Railway
-1. Create a new Railway project and add a Python service from this repo root.
-2. Set service start command to use `Procfile` (detected automatically) or `uvicorn backend.main:app --host 0.0.0.0 --port $PORT`.
-3. Add environment variables in Railway:
-   - `REPLICATE_API_TOKEN`: your token (stored securely on Railway)
-   - `ALLOWED_ORIGINS`: your Vercel domain, e.g. `https://your-app.vercel.app`
-4. Deploy.
+Frontend (Vercel):
+- WORKER_API_BASE: URL of Railway worker (e.g. https://your-worker.up.railway.app)
+- NEXTAUTH_SECRET, NEXTAUTH_URL (if using auth)
+- DATABASE_URL
+- Storage keys (Vercel Blob or S3)
 
-### Frontend on Vercel
-1. Import the `frontend` folder as a new Vercel project.
-2. Set environment variable:
-   - `NEXT_PUBLIC_API_BASE`: your Railway service public URL, e.g. `https://your-railway-app.up.railway.app`
-3. Build & deploy. The UI will POST to the Railway API and render result URLs.
+Worker (Railway):
+- OPENAI_API_KEY
+- REPLICATE_API_TOKEN
+- DATABASE_URL
+- Storage keys
+
+### Deploy
+
+1. Push this repo to GitHub
+2. Import the repo in Vercel (UI in /frontend)
+3. Deploy worker to Railway from /worker
+4. Set WORKER_API_BASE in Vercel to your Railway URL
+
+### API surface (proxied)
+
+UI -> /api/* -> Railway worker
+
+- POST /api/projects
+- POST /api/projects/{id}/styles
+- POST /api/projects/{id}/styles/select
+- POST /api/projects/{id}/ideas
+- PUT  /api/projects/{id}/ideas
+- POST /api/projects/{id}/pages
+- POST /api/projects/{id}/export
+- GET  /api/jobs/{id}
+- GET  /api/projects/{id}
 
 

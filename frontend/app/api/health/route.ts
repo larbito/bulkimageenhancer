@@ -8,7 +8,7 @@ export async function GET() {
   }
 
   try {
-    const response = await fetch(`${WORKER_API_BASE}/api/health`, {
+    const response = await fetch(`${WORKER_API_BASE}/health`, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' }
     });

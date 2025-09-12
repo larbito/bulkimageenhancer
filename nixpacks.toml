@@ -2,7 +2,7 @@
 nixPkgs = ['nodejs_18']
 
 [phases.install]
-cmds = ['cd worker && npm install --only=prod']
+cmds = ['cd worker && npm install']
 
 [phases.build] 
 cmds = ['cd worker && npm run railway:build']

@@ -1,12 +1,22 @@
 import express from 'express';
 import pino from 'pino';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 import { generateStyleSamples, generatePageIdeas } from './services.js';
 import { createJob, getJob, getProject, setProject, startJobRunner } from './jobs.js';
+import { createProjectZip } from './zip.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const app = express();
 const logger = pino();
 
 app.use(express.json({ limit: '10mb' }));
+
+// Serve static files from storage directory
+const storageDir = join(__dirname, '..', 'storage');
+app.use('/storage', express.static(storageDir));
 
 app.get('/health', (_req, res) => {
   res.json({ 
@@ -243,7 +253,7 @@ app.get('/api/projects/:id', (req, res) => {
 });
 
 // Export project as ZIP
-app.post('/api/projects/:id/export', (req, res) => {
+app.post('/api/projects/:id/export', async (req, res) => {
   try {
     const projectId = String(req.params.id);
     const project = getProject(projectId);
@@ -252,12 +262,17 @@ app.post('/api/projects/:id/export', (req, res) => {
       return res.status(404).json({ error: 'Project not found' });
     }
     
-    // For now, return a placeholder ZIP URL
-    // TODO: Implement actual ZIP generation
-    const zipUrl = `https://example.com/exports/${projectId}/coloring-book.zip`;
+    if (!project.images || project.images.length === 0) {
+      return res.status(400).json({ error: 'No images to export. Generate pages first.' });
+    }
     
-    logger.info({ projectId, zipUrl }, 'Export requested');
+    logger.info({ projectId }, 'Creating ZIP export');
+    
+    const zipUrl = await createProjectZip(project, logger);
+    
+    logger.info({ projectId, zipUrl }, 'ZIP export created');
     res.json({ url: zipUrl });
+    
   } catch (error) {
     logger.error({ error }, 'Failed to export project');
     res.status(500).json({ error: 'Failed to export project' });

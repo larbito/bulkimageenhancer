@@ -1,4 +1,5 @@
 import { generatePageImage } from './services.js';
+import { saveProjectImage } from './storage.js';
 
 // In-memory job storage (replace with database later)
 const jobs = new Map();
@@ -74,9 +75,34 @@ export async function processPageGeneration(job, logger) {
           logger
         );
         
+        // Save base image
+        const baseImageSaved = await saveProjectImage(
+          job.projectId,
+          'base',
+          imageResult.baseUrl,
+          i + 1,
+          logger
+        );
+        
+        // Save upscaled image
+        const upscaledImageSaved = await saveProjectImage(
+          job.projectId,
+          'upscaled',
+          imageResult.upscaledUrl,
+          i + 1,
+          logger
+        );
+        
         results.push({
           ideaId: idea.id,
-          ...imageResult
+          baseUrl: baseImageSaved.publicUrl,
+          upscaledUrl: upscaledImageSaved.publicUrl,
+          width: imageResult.width,
+          height: imageResult.height,
+          saved: {
+            base: baseImageSaved,
+            upscaled: upscaledImageSaved
+          }
         });
         
         logger.info({ index: i + 1, upscaledUrl: imageResult.upscaledUrl }, 'Page completed');

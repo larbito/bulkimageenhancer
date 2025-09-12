@@ -1,3 +1,4 @@
+import "./globals.css";
 export const metadata = {
   title: 'Coloring Book Studio',
   description: 'Generate full coloring books from your idea',

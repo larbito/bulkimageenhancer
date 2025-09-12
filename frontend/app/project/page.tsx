@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 
 // Import the actual page components
 import StyleChooserPage from "../projects/[id]/styles/page";
@@ -10,7 +10,7 @@ import RenderPage from "../projects/[id]/render/page";
 import ReviewPage from "../projects/[id]/review/page";
 import ProjectPage from "../projects/[id]/page";
 
-export default function ProjectRouter() {
+function ProjectRouterContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   
@@ -48,4 +48,19 @@ export default function ProjectRouter() {
     default:
       return <ProjectPage />;
   }
+}
+
+export default function ProjectRouter() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p>Loading...</p>
+        </div>
+      </div>
+    }>
+      <ProjectRouterContent />
+    </Suspense>
+  );
 }

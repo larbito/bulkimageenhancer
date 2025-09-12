@@ -22,7 +22,7 @@ export default function Page() {
       form.append("scale", "2");
       form.append("face_enhance", "true");
 
-      const apiBase = process.env.NEXT_PUBLIC_API_BASE || "";
+      const apiBase = process.env.NEXT_PUBLIC_API_BASE || "/api";
       const res = await fetch(`${apiBase}/enhance`, {
         method: "POST",
         body: form,

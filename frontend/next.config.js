@@ -5,8 +5,7 @@ const nextConfig = {
     remotePatterns: [
       { protocol: 'https', hostname: '**', pathname: '/**' }
     ]
-  },
-  output: 'standalone'
+  }
 }
 
 module.exports = nextConfig

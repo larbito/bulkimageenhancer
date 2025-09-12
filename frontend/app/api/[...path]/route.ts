@@ -14,6 +14,8 @@ async function forward(req: NextRequest, path: string) {
   const original = new URL(req.url);
   if (original.search) url.search = original.search;
 
+  console.log(`[API PROXY] ${req.method} ${original.pathname} -> ${url.toString()}`);
+
   const headers = new Headers(req.headers);
   headers.delete("host");
   headers.set("x-forwarded-host", original.host);

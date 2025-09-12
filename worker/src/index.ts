@@ -30,20 +30,65 @@ app.post('/api/projects', async (req, res) => {
   }
 });
 
-app.post('/api/projects/:id/styles', (_req, res) => {
-  const candidates = Array.from({ length: 5 }).map((_, i) => ({
-    id: `style_${i + 1}`,
-    projectId: 'proj_123',
-    promptText: 'Sample style prompt',
-    params: { lineThickness: 'medium' },
-    thumbnailUrl: 'https://placehold.co/512x512/FFFFFF/000000.svg?text=Style',
-    selected: false,
-  }));
-  res.json({ candidates });
+app.post('/api/projects/:id/styles', async (req, res) => {
+  try {
+    const projectId = String(req.params.id);
+    const idea = (await prisma.project.findUnique({ where: { id: projectId } }))?.title || 'Your idea';
+    const variants = [
+      { line: 'thin', stroke: 'clean', framing: 'full body', bg: 'minimal', detail: 'low' },
+      { line: 'medium', stroke: 'clean', framing: 'half body', bg: 'simple scene', detail: 'medium' },
+      { line: 'thick', stroke: 'clean', framing: 'full body', bg: 'minimal', detail: 'low' },
+      { line: 'thin', stroke: 'sketchy', framing: 'half body', bg: 'minimal', detail: 'low' },
+      { line: 'medium', stroke: 'clean', framing: 'full body', bg: 'simple scene', detail: 'low' },
+    ];
+    const candidates = variants.map((v, i) => ({
+      id: `style_${i + 1}`,
+      projectId,
+      promptText: `Black and white coloring page, ${v.line} lines, ${v.stroke} outlines, ${v.framing}, ${v.bg}, ${v.detail} detail. Idea: ${idea}`,
+      params: v,
+      thumbnailUrl: `https://placehold.co/512x512/ffffff/000000?text=Style+${i + 1}`,
+      selected: false,
+    }));
+    res.json({ candidates });
+  } catch (e: any) {
+    logger.error(e);
+    res.status(500).json({ error: 'failed_to_sample_styles' });
+  }
 });
 
-app.post('/api/projects/:id/styles/select', (_req, res) => {
-  res.json({ ok: true });
+app.post('/api/projects/:id/styles/select', async (req, res) => {
+  try {
+    const projectId = String(req.params.id);
+    const { id: candidateId } = req.body ?? {};
+    // In lieu of persisted candidates, derive params from candidate id
+    const map: Record<string, any> = {
+      style_1: { line: 'thin', framing: 'full body' },
+      style_2: { line: 'medium', framing: 'half body' },
+      style_3: { line: 'thick', framing: 'full body' },
+      style_4: { line: 'thin', framing: 'half body' },
+      style_5: { line: 'medium', framing: 'full body' },
+    };
+    const params = map[String(candidateId)] ?? { line: 'medium', framing: 'full body' };
+    const stylePrompt = [
+      'black and white coloring page',
+      'clean bold outlines',
+      'no shading no gray fills',
+      'white background',
+      'high contrast ink look',
+      'centered main subject',
+      'avoid text and logos',
+      'safe margins for trim',
+    ].join(', ');
+    const profile = await prisma.styleProfile.upsert({
+      where: { projectId },
+      create: { projectId, stylePrompt, params, seed: null, characterRef: null },
+      update: { stylePrompt, params },
+    });
+    res.json(profile);
+  } catch (e: any) {
+    logger.error(e);
+    res.status(500).json({ error: 'failed_to_select_style' });
+  }
 });
 
 app.post('/api/projects/:id/ideas', async (req, res) => {
@@ -84,12 +129,29 @@ app.put('/api/projects/:id/ideas', async (req, res) => {
   }
 });
 
-app.post('/api/projects/:id/pages', (_req, res) => {
-  res.json({ id: 'job_1', type: 'page_gen', projectId: 'proj_123', status: 'queued', payload: {} });
+app.post('/api/projects/:id/pages', async (req, res) => {
+  try {
+    const projectId = String(req.params.id);
+    const job = await prisma.job.create({
+      data: { type: 'page_gen', projectId, payload: {}, status: 'queued' },
+    });
+    res.json(job);
+  } catch (e: any) {
+    logger.error(e);
+    res.status(500).json({ error: 'failed_to_queue_pages' });
+  }
 });
 
-app.get('/api/jobs/:id', (_req, res) => {
-  res.json({ id: 'job_1', type: 'page_gen', projectId: 'proj_123', status: 'running', payload: {} });
+app.get('/api/jobs/:id', async (req, res) => {
+  try {
+    const jobId = String(req.params.id);
+    const job = await prisma.job.findUnique({ where: { id: jobId } });
+    if (!job) return res.status(404).json({ error: 'not_found' });
+    res.json(job);
+  } catch (e: any) {
+    logger.error(e);
+    res.status(500).json({ error: 'failed_to_get_job' });
+  }
 });
 
 app.get('/api/projects/:id', async (req, res) => {
@@ -107,8 +169,16 @@ app.get('/api/projects/:id', async (req, res) => {
   }
 });
 
-app.post('/api/projects/:id/export', (_req, res) => {
-  res.json({ url: 'https://example.com/book.zip' });
+app.post('/api/projects/:id/export', async (req, res) => {
+  try {
+    const projectId = String(req.params.id);
+    await prisma.job.create({ data: { type: 'zip', projectId, payload: {}, status: 'queued' } });
+    // Placeholder: would return a generated URL after job completes
+    res.json({ url: 'https://example.com/book.zip' });
+  } catch (e: any) {
+    logger.error(e);
+    res.status(500).json({ error: 'failed_to_queue_zip' });
+  }
 });
 
 const port = process.env.PORT || 3000;

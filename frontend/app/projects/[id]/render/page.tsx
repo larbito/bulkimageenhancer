@@ -43,7 +43,7 @@ export default function RenderPage() {
         else if (updatedJob.status === 'done') {
           setProgress(100);
           setTimeout(() => {
-            router.push(`/projects/${projectId}/review`);
+            router.push(`/project?id=${projectId}&page=review`);
           }, 2000);
         }
         else if (updatedJob.status === 'error') setProgress(0);

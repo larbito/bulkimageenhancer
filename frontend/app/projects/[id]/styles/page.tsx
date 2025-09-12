@@ -53,7 +53,7 @@ export default function StyleChooserPage() {
       if (!res.ok) throw new Error(`Request failed: ${res.status}`);
       setSelectedStyle(id);
       setTimeout(() => {
-        router.push(`/projects/${projectId}/ideas`);
+        router.push(`/project?id=${projectId}&page=ideas`);
       }, 1000);
     } catch (e: any) {
       setError(e.message || "Failed to select style");

@@ -36,7 +36,7 @@ export default function NewProjectPage() {
       }
       
       const project = await res.json();
-      window.location.href = `/projects/${project.id}/styles`;
+      window.location.href = `/project?id=${project.id}&page=styles`;
     } catch (e: any) { 
       setError(e.message || 'Failed to create project'); 
     } finally { 

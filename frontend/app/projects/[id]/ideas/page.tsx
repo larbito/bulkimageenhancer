@@ -62,7 +62,7 @@ export default function IdeasPage() {
         }) 
       });
       if (!res.ok) throw new Error(`Request failed: ${res.status}`);
-      router.push(`/projects/${projectId}/render`);
+        router.push(`/project?id=${projectId}&page=render`);
     } catch (e: any) {
       setError(e.message || 'Failed to save ideas');
     } finally {

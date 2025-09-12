@@ -8,8 +8,28 @@ const logger = pino();
 
 app.use(express.json({ limit: '10mb' }));
 
-app.get('/health', (_req, res) => {
-  res.json({ status: 'ok' });
+app.get('/health', async (_req, res) => {
+  try {
+    // Test database connection
+    await prisma.$queryRaw`SELECT 1`;
+    res.json({ status: 'ok', database: 'connected', timestamp: new Date().toISOString() });
+  } catch (error: any) {
+    logger.error({ error }, 'Health check failed');
+    res.status(500).json({ 
+      status: 'error', 
+      database: 'disconnected', 
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+app.get('/', (_req, res) => {
+  res.json({ 
+    name: 'Coloring Book Worker', 
+    status: 'running',
+    timestamp: new Date().toISOString()
+  });
 });
 
 // Stubs for API surface
@@ -183,7 +203,21 @@ app.post('/api/projects/:id/export', async (req, res) => {
 });
 
 const port = process.env.PORT || 3000;
-app.listen(port, () => logger.info({ port }, 'worker listening'));
-startRunner(logger);
+
+// Add error handling for startup
+process.on('uncaughtException', (error) => {
+  logger.error({ error }, 'Uncaught exception');
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  logger.error({ reason, promise }, 'Unhandled rejection');
+  process.exit(1);
+});
+
+app.listen(port, '0.0.0.0', () => {
+  logger.info({ port }, 'worker listening on 0.0.0.0:' + port);
+  startRunner(logger);
+});
 
 

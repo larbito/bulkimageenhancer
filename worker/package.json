@@ -6,14 +6,15 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "start": "node dist/index.js",
-    "build": "prisma generate && tsup src/index.ts --format esm,cjs --dts --sourcemap --clean",
-    "postinstall": "prisma generate --no-engine",
+    "build": "tsup src/index.ts --format esm,cjs --dts --sourcemap --clean",
     "deploy": "prisma migrate deploy || echo 'Migration failed, continuing...'",
     "studio": "prisma studio",
-    "railway:build": "prisma generate && npm run build"
+    "railway:build": "prisma generate && npm run build",
+    "railway:start": "prisma generate && npm run deploy && npm start"
   },
   "dependencies": {
     "@prisma/client": "^5.20.0",
+    "@prisma/engines": "^5.20.0",
     "@upstash/redis": "^1.28.4",
     "express": "^4.19.2",
     "openai": "^4.61.0",

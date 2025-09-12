@@ -1,6 +1,7 @@
 import express from 'express';
 import pino from 'pino';
 import { prisma } from './db';
+import { startRunner } from './runner';
 
 const app = express();
 const logger = pino();
@@ -183,5 +184,6 @@ app.post('/api/projects/:id/export', async (req, res) => {
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => logger.info({ port }, 'worker listening'));
+startRunner(logger);
 
 

@@ -1,78 +1,59 @@
 "use client";
 
-import { useState } from "react";
-import { Navbar, Footer, Button, Card } from "@/components/ui";
-import Link from "next/link";
+import { Navbar, Footer, Hero, Features, HowItWorks } from "@/components/ui";
 
-export default function Page() {
-  const [title, setTitle] = useState("");
-  const [pages, setPages] = useState(10);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const handleCreate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await fetch("/api/projects", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ title, pagesRequested: pages }),
-      });
-      if (!res.ok) throw new Error(`Request failed: ${res.status}`);
-      const project = await res.json();
-      window.location.href = `/projects/${project.id}/styles`;
-    } catch (err: any) {
-      setError(err.message || "Unknown error");
-    } finally {
-      setLoading(false);
-    }
-  };
-
+export default function LandingPage() {
   return (
-    <div>
+    <div className="min-h-screen">
       <Navbar />
-      <main className="py-10">
-        <section className="grid md:grid-cols-2 gap-10 items-center">
-          <div>
-            <h1 className="text-4xl font-semibold leading-tight">Generate a full coloring book from your idea</h1>
-            <p className="mt-3 text-slate-600">Enter your theme and page count. Pick a style. We generate consistent pages, upscale, and let you download a print-ready PNG set.</p>
-            <form onSubmit={handleCreate} className="mt-6 grid gap-3 max-w-md">
-              <label className="text-sm">Idea</label>
-              <input className="border rounded-md px-3 py-2" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Horse Adventures" required />
-              <label className="text-sm">Page count</label>
-              <input className="border rounded-md px-3 py-2 w-32" type="number" min={4} max={60} value={pages} onChange={(e) => setPages(parseInt(e.target.value || '10', 10))} />
-              <Button type="submit" disabled={loading}>
-                {loading ? "Creating..." : "Create project"}
-              </Button>
-              {error && <p className="text-red-600 text-sm">{error}</p>}
-            </form>
+      <main>
+        <Hero />
+        <Features />
+        <HowItWorks />
+        
+        {/* CTA Section */}
+        <section className="py-20">
+          <div className="container mx-auto px-6 text-center">
+            <div className="bg-gradient-to-r from-primary to-accent rounded-3xl p-12 md:p-20 text-white animate-fadeIn">
+              <h2 className="text-3xl md:text-5xl font-bold mb-6">
+                Ready to create your first coloring book?
+              </h2>
+              <p className="text-xl mb-8 opacity-90 max-w-2xl mx-auto">
+                Join thousands of creators who are already making beautiful coloring books with AI.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <a 
+                  href="/app/new" 
+                  className="inline-flex items-center justify-center px-8 py-4 bg-white text-primary font-semibold rounded-2xl hover:bg-gray-100 transition-all duration-200 hover:scale-[1.02]"
+                >
+                  Start Creating Now
+                </a>
+                <a 
+                  href="#features" 
+                  className="inline-flex items-center justify-center px-8 py-4 border-2 border-white/30 text-white font-semibold rounded-2xl hover:bg-white/10 transition-all duration-200"
+                >
+                  Learn More
+                </a>
+              </div>
+            </div>
           </div>
-          <Card className="p-6">
-            <div className="grid grid-cols-3 gap-3">
-              {[1,2,3,4,5,6].map(i => (
-                <div key={i} className="aspect-[3/4] bg-slate-100 rounded" />
+        </section>
+
+        {/* Social Proof */}
+        <section className="py-20 bg-muted/30">
+          <div className="container mx-auto px-6 text-center">
+            <h3 className="text-2xl font-semibold mb-12 text-muted-fg">
+              Trusted by creators worldwide
+            </h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 opacity-60">
+              {['Teachers', 'Parents', 'Publishers', 'Artists'].map((category, index) => (
+                <div key={index} className="text-lg font-medium">{category}</div>
               ))}
             </div>
-            <p className="mt-3 text-sm text-slate-600">Preview thumbnails of generated pages.</p>
-          </Card>
-        </section>
-        <section className="mt-16 grid md:grid-cols-3 gap-6">
-          {[{t:'Consistent Style',d:'Lock style prompt, params and seed for consistent line weight and character.'},{t:'Fast Preview',d:'Generate previews quickly before rendering print-size pages.'},{t:'Upscaled Finals',d:'Use Real-ESRGAN to upscale for crisp prints.'}].map((f,i)=>(
-            <Card key={i} className="p-6">
-              <h3 className="font-medium">{f.t}</h3>
-              <p className="text-sm text-slate-600 mt-2">{f.d}</p>
-            </Card>
-          ))}
-        </section>
-        <section className="mt-16">
-          <Link href="/app/new" className="px-5 py-3 rounded-xl bg-primary text-primary-foreground">Start now</Link>
+          </div>
         </section>
       </main>
       <Footer />
     </div>
   );
 }
-
-

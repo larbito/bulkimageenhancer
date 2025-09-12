@@ -17,7 +17,7 @@ export default function RenderPage() {
   const startRender = async () => {
     setError(null);
     try {
-      const res = await fetch(`/api/projects/${projectId}/pages`, { 
+      const res = await fetch(`/api/proxy?path=projects/${projectId}/pages`, { 
         method: 'POST', 
         headers: { 'content-type': 'application/json' }, 
         body: JSON.stringify({}) 
@@ -32,7 +32,7 @@ export default function RenderPage() {
 
   const pollJobStatus = async (jobId: string) => {
     try {
-      const res = await fetch(`/api/jobs/${jobId}`);
+      const res = await fetch(`/api/proxy?path=jobs/${jobId}`);
       if (res.ok) {
         const updatedJob = await res.json();
         setJob(updatedJob);

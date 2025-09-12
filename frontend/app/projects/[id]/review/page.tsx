@@ -20,7 +20,7 @@ export default function ReviewPage() {
   const loadProject = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/projects/${projectId}`);
+      const res = await fetch(`/api/proxy?path=projects/${projectId}`);
       if (!res.ok) return;
       const data = await res.json();
       const images: PageImage[] = (data.ideas || [])
@@ -37,7 +37,7 @@ export default function ReviewPage() {
   const buildZip = async () => {
     setBuildingZip(true);
     try {
-      const res = await fetch(`/api/projects/${projectId}/export`, { method: 'POST' });
+      const res = await fetch(`/api/proxy?path=projects/${projectId}/export`, { method: 'POST' });
       if (!res.ok) return;
       const data = await res.json();
       setZipUrl(data.url);

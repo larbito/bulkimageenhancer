@@ -22,7 +22,7 @@ export default function IdeasPage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/projects/${projectId}`, { cache: 'no-store' });
+      const res = await fetch(`/api/proxy?path=projects/${projectId}`, { cache: 'no-store' });
       if (!res.ok) throw new Error(`Request failed: ${res.status}`);
       const data = await res.json();
       const list: PageIdea[] = data.ideas || [];
@@ -39,7 +39,7 @@ export default function IdeasPage() {
     setGenerating(true);
     setError(null);
     try {
-      const res = await fetch(`/api/projects/${projectId}/ideas`, { method: 'POST' });
+      const res = await fetch(`/api/proxy?path=projects/${projectId}/ideas`, { method: 'POST' });
       if (!res.ok) throw new Error(`Request failed: ${res.status}`);
       await loadIdeas();
     } catch (e: any) {
@@ -53,7 +53,7 @@ export default function IdeasPage() {
     setSaving(true);
     setError(null);
     try {
-      const res = await fetch(`/api/projects/${projectId}/ideas`, { 
+      const res = await fetch(`/api/proxy?path=projects/${projectId}/ideas`, { 
         method: 'PUT', 
         headers: { 'content-type': 'application/json' }, 
         body: JSON.stringify({ 

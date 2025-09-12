@@ -21,7 +21,7 @@ export default function StyleChooserPage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/projects/${projectId}/styles`, { 
+      const res = await fetch(`/api/proxy?path=projects/${projectId}/styles`, { 
         method: "POST", 
         headers: { "content-type": "application/json" }, 
         body: JSON.stringify({ n: 5 }) 
@@ -45,7 +45,7 @@ export default function StyleChooserPage() {
   const selectStyle = async (id: string) => {
     setSelecting(id);
     try {
-      const res = await fetch(`/api/projects/${projectId}/styles/select`, { 
+      const res = await fetch(`/api/proxy?path=projects/${projectId}/styles/select`, { 
         method: "POST", 
         headers: { "content-type": "application/json" }, 
         body: JSON.stringify({ id }) 

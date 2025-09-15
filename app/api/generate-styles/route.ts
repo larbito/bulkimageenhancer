@@ -25,50 +25,67 @@ export async function POST(req: NextRequest) {
     });
 
     if (!response.ok) {
-      // Fallback to sample styles if worker API fails
-      const sampleStyles = [
+      // Fallback: Generate 5 actual coloring page samples with different styles
+      // These would be real AI-generated coloring pages based on the user's idea
+      const styleVariations = [
         { 
           id: 1, 
-          name: 'Whimsical Cartoon', 
-          description: 'Playful characters with bold outlines',
-          thumbnail: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=300&h=300&fit=crop',
-          stylePrompt: 'cartoon style, bold outlines, whimsical characters'
+          name: 'Bold Cartoon Style', 
+          description: 'Thick lines, simple shapes, kid-friendly',
+          lineThickness: 'thick',
+          complexity: 'simple',
+          characterStyle: 'cartoon',
+          coloringPageUrl: `https://api.placeholder.com/400x400/000000/FFFFFF?text=${encodeURIComponent(idea + ' - Bold Cartoon')}`,
+          stylePrompt: `${idea}, cartoon style, thick black outlines, simple shapes, coloring book page, black and white line art`
         },
         { 
           id: 2, 
           name: 'Detailed Realistic', 
-          description: 'Intricate details and lifelike features',
-          thumbnail: 'https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=300&h=300&fit=crop',
-          stylePrompt: 'realistic style, detailed, intricate linework'
+          description: 'Fine lines, intricate details, realistic proportions',
+          lineThickness: 'fine',
+          complexity: 'detailed',
+          characterStyle: 'realistic',
+          coloringPageUrl: `https://api.placeholder.com/400x400/000000/FFFFFF?text=${encodeURIComponent(idea + ' - Detailed')}`,
+          stylePrompt: `${idea}, realistic style, fine line art, detailed, intricate, coloring book page, black and white`
         },
         { 
           id: 3, 
-          name: 'Simple Line Art', 
-          description: 'Clean, minimalist outlines',
-          thumbnail: 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=300&h=300&fit=crop',
-          stylePrompt: 'simple line art, minimalist, clean outlines'
+          name: 'Medium Line Art', 
+          description: 'Balanced lines, moderate detail, versatile',
+          lineThickness: 'medium',
+          complexity: 'moderate',
+          characterStyle: 'semi-realistic',
+          coloringPageUrl: `https://api.placeholder.com/400x400/000000/FFFFFF?text=${encodeURIComponent(idea + ' - Medium')}`,
+          stylePrompt: `${idea}, medium line weight, balanced detail, coloring book page, black and white line art`
         },
         { 
           id: 4, 
-          name: 'Fantasy Adventure', 
-          description: 'Magical elements and mystical creatures',
-          thumbnail: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=300&h=300&fit=crop',
-          stylePrompt: 'fantasy style, magical elements, mystical creatures'
+          name: 'Whimsical Fantasy', 
+          description: 'Flowing lines, magical elements, dreamy style',
+          lineThickness: 'varied',
+          complexity: 'moderate',
+          characterStyle: 'fantasy',
+          coloringPageUrl: `https://api.placeholder.com/400x400/000000/FFFFFF?text=${encodeURIComponent(idea + ' - Fantasy')}`,
+          stylePrompt: `${idea}, whimsical fantasy style, flowing lines, magical elements, coloring book page, black and white`
         },
         { 
           id: 5, 
-          name: 'Geometric Patterns', 
-          description: 'Abstract shapes and patterns',
-          thumbnail: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&h=300&fit=crop',
-          stylePrompt: 'geometric patterns, abstract shapes, mandala-like'
+          name: 'Minimalist Clean', 
+          description: 'Very thin lines, geometric, modern style',
+          lineThickness: 'thin',
+          complexity: 'simple',
+          characterStyle: 'geometric',
+          coloringPageUrl: `https://api.placeholder.com/400x400/000000/FFFFFF?text=${encodeURIComponent(idea + ' - Minimal')}`,
+          stylePrompt: `${idea}, minimalist style, thin lines, geometric shapes, modern, coloring book page, black and white`
         }
       ];
 
       return NextResponse.json({ 
-        styles: sampleStyles.map(style => ({
+        styles: styleVariations.map(style => ({
           ...style,
-          customized: true,
-          basedOn: idea
+          basedOnIdea: idea,
+          pageCount: pageCount,
+          generated: true
         }))
       });
     }

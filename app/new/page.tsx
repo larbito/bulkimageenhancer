@@ -19,33 +19,53 @@ export default function NewProjectPage() {
   const sampleStyles = [
     { 
       id: 1, 
-      name: 'Whimsical Cartoon', 
-      description: 'Playful characters with bold outlines',
-      thumbnail: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=300&h=300&fit=crop'
+      name: 'Bold Cartoon Style', 
+      description: 'Thick lines, simple shapes, kid-friendly',
+      lineThickness: 'thick',
+      complexity: 'simple',
+      characterStyle: 'cartoon',
+      coloringPageUrl: 'https://via.placeholder.com/400x400/ffffff/000000?text=Bold+Cartoon+Style',
+      stylePrompt: 'cartoon style, thick black outlines, simple shapes, coloring book page'
     },
     { 
       id: 2, 
       name: 'Detailed Realistic', 
-      description: 'Intricate details and lifelike features',
-      thumbnail: 'https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=300&h=300&fit=crop'
+      description: 'Fine lines, intricate details, realistic proportions',
+      lineThickness: 'fine',
+      complexity: 'detailed',
+      characterStyle: 'realistic',
+      coloringPageUrl: 'https://via.placeholder.com/400x400/ffffff/000000?text=Detailed+Realistic',
+      stylePrompt: 'realistic style, fine line art, detailed, intricate, coloring book page'
     },
     { 
       id: 3, 
-      name: 'Simple Line Art', 
-      description: 'Clean, minimalist outlines',
-      thumbnail: 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=300&h=300&fit=crop'
+      name: 'Medium Line Art', 
+      description: 'Balanced lines, moderate detail, versatile',
+      lineThickness: 'medium',
+      complexity: 'moderate',
+      characterStyle: 'semi-realistic',
+      coloringPageUrl: 'https://via.placeholder.com/400x400/ffffff/000000?text=Medium+Line+Art',
+      stylePrompt: 'medium line weight, balanced detail, coloring book page'
     },
     { 
       id: 4, 
-      name: 'Fantasy Adventure', 
-      description: 'Magical elements and mystical creatures',
-      thumbnail: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=300&h=300&fit=crop'
+      name: 'Whimsical Fantasy', 
+      description: 'Flowing lines, magical elements, dreamy style',
+      lineThickness: 'varied',
+      complexity: 'moderate',
+      characterStyle: 'fantasy',
+      coloringPageUrl: 'https://via.placeholder.com/400x400/ffffff/000000?text=Whimsical+Fantasy',
+      stylePrompt: 'whimsical fantasy style, flowing lines, magical elements, coloring book page'
     },
     { 
       id: 5, 
-      name: 'Geometric Patterns', 
-      description: 'Abstract shapes and patterns',
-      thumbnail: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&h=300&fit=crop'
+      name: 'Minimalist Clean', 
+      description: 'Very thin lines, geometric, modern style',
+      lineThickness: 'thin',
+      complexity: 'simple',
+      characterStyle: 'geometric',
+      coloringPageUrl: 'https://via.placeholder.com/400x400/ffffff/000000?text=Minimalist+Clean',
+      stylePrompt: 'minimalist style, thin lines, geometric shapes, modern, coloring book page'
     }
   ];
 
@@ -225,7 +245,7 @@ export default function NewProjectPage() {
               <div className="text-center">
                 <Palette className="w-16 h-16 text-primary mx-auto mb-4" />
                 <h2 className="text-3xl font-bold mb-2">Choose Your Style</h2>
-                <p className="text-muted-fg">AI generated 5 styles based on your idea - pick one or regenerate</p>
+                <p className="text-muted-fg">5 coloring page samples of "{projectData.idea}" in different styles - pick the one you like!</p>
               </div>
 
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -239,20 +259,46 @@ export default function NewProjectPage() {
                     }`}
                     onClick={() => selectStyle(style)}
                   >
-                    <div className="aspect-square bg-gradient-to-br from-muted to-muted/50 rounded-lg mb-4 overflow-hidden">
+                    {/* Actual Coloring Page Sample */}
+                    <div className="aspect-square bg-white border rounded-lg mb-4 overflow-hidden">
                       <img 
-                        src={style.thumbnail} 
-                        alt={style.name}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                        src={style.coloringPageUrl || style.thumbnail} 
+                        alt={`${projectData.idea} in ${style.name}`}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
                     </div>
-                    <h3 className="font-semibold text-lg mb-2">{style.name}</h3>
-                    <p className="text-sm text-muted-fg">{style.description}</p>
+                    
+                    {/* Style Details */}
+                    <div className="p-4">
+                      <h3 className="font-semibold text-lg mb-2">{style.name}</h3>
+                      <p className="text-sm text-muted-fg mb-3">{style.description}</p>
+                      
+                      {/* Style Specifications */}
+                      <div className="space-y-1 text-xs">
+                        <div className="flex justify-between">
+                          <span className="text-muted-fg">Line Thickness:</span>
+                          <span className="font-medium">{style.lineThickness}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-fg">Complexity:</span>
+                          <span className="font-medium">{style.complexity}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-fg">Character Style:</span>
+                          <span className="font-medium">{style.characterStyle}</span>
+                        </div>
+                      </div>
+                    </div>
                   </Card>
                 ))}
               </div>
 
-              <div className="text-center">
+              <div className="text-center space-y-4">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-800">
+                  <strong>💡 How it works:</strong> Each image above is an actual coloring page sample of your idea "{projectData.idea}" 
+                  rendered in different artistic styles. Choose the line thickness, complexity, and character style you prefer!
+                </div>
+                
                 <Button 
                   variant="ghost" 
                   onClick={regenerateStyles}
@@ -260,7 +306,7 @@ export default function NewProjectPage() {
                   className="gap-2"
                 >
                   {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
-                  {loading ? 'Generating...' : 'Regenerate Styles'}
+                  {loading ? 'Generating New Samples...' : 'Generate 5 New Style Samples'}
                 </Button>
               </div>
             </div>

@@ -1,263 +1,341 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Play, Pause, Square, RotateCcw, Zap, Clock, CheckCircle2, XCircle, ArrowRight } from "lucide-react";
+import { Play, Pause, Download, Zap, Clock, CheckCircle2, XCircle, ArrowRight, Loader2, Image } from "lucide-react";
 import { Button, Card } from "@/components/ui";
-import type { Job } from "@/lib/types";
+
+interface RenderPage {
+  id: number;
+  title: string;
+  description: string;
+  status: 'pending' | 'rendering' | 'completed' | 'error';
+  originalUrl?: string;
+  renderUrl?: string;
+  upscaledUrl?: string;
+  renderTime?: number;
+}
 
 export default function RenderPage() {
   const params = useParams();
   const router = useRouter();
-  const projectId = useMemo(() => String(params?.id || ""), [params]);
-  const [job, setJob] = useState<Job | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const projectId = String(params?.id || "");
+  
+  const [pages, setPages] = useState<RenderPage[]>([]);
+  const [renderingStatus, setRenderingStatus] = useState<'idle' | 'rendering' | 'upscaling' | 'completed'>('idle');
   const [progress, setProgress] = useState(0);
+  const [error, setError] = useState<string | null>(null);
 
-  const startRender = async () => {
-    setError(null);
-    try {
-      const res = await fetch(`/api/proxy?path=projects/${projectId}/pages`, { 
-        method: 'POST', 
-        headers: { 'content-type': 'application/json' }, 
-        body: JSON.stringify({}) 
-      });
-      if (!res.ok) throw new Error(`Request failed: ${res.status}`);
-      const newJob = await res.json();
-      setJob(newJob);
-    } catch (e: any) {
-      setError(e.message || 'Failed to start render');
-    }
-  };
-
-  const pollJobStatus = async (jobId: string) => {
-    try {
-      const res = await fetch(`/api/proxy?path=jobs/${jobId}`);
-      if (res.ok) {
-        const updatedJob = await res.json();
-        setJob(updatedJob);
-        
-        // Simulate progress based on status
-        if (updatedJob.status === 'queued') setProgress(10);
-        else if (updatedJob.status === 'running') setProgress(50 + Math.random() * 30);
-        else if (updatedJob.status === 'done') {
-          setProgress(100);
-          setTimeout(() => {
-            router.push(`/project?id=${projectId}&page=review`);
-          }, 2000);
-        }
-        else if (updatedJob.status === 'error') setProgress(0);
-      }
-    } catch (e) {
-      console.error('Failed to poll job status:', e);
-    }
-  };
-
+  // Mock data for demo - this would come from the previous step
   useEffect(() => {
-    if (!job) return;
-    
-    const interval = setInterval(() => {
-      if (job.status === 'queued' || job.status === 'running') {
-        pollJobStatus(job.id);
+    // Simulate loading page ideas from the previous step
+    const mockPages: RenderPage[] = Array.from({length: 12}, (_, i) => ({
+      id: i + 1,
+      title: `Magical Forest Page ${i + 1}`,
+      description: `A coloring page featuring magical forest elements`,
+      status: 'pending'
+    }));
+    setPages(mockPages);
+  }, []);
+
+  const startRendering = async () => {
+    setRenderingStatus('rendering');
+    setError(null);
+    setProgress(0);
+
+    try {
+      // Update all pages to rendering status
+      setPages(prev => prev.map(page => ({ ...page, status: 'rendering' as const })));
+
+      const response = await fetch('/api/render-pages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projectId,
+          pageIdeas: pages,
+          style: { id: 1, name: 'Cartoon Style', stylePrompt: 'cartoon style, bold outlines' }
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to start rendering');
       }
-    }, 2000);
 
-    return () => clearInterval(interval);
-  }, [job]);
+      const data = await response.json();
+      
+      // Simulate progressive rendering
+      for (let i = 0; i < pages.length; i++) {
+        await new Promise(resolve => setTimeout(resolve, 2000)); // 2 seconds per page
+        
+        setPages(prev => prev.map((page, index) => 
+          index === i 
+            ? { 
+                ...page, 
+                status: 'completed',
+                renderUrl: `https://images.unsplash.com/photo-${1600000000 + i}?w=800&h=800&fit=crop`,
+                renderTime: Math.floor(Math.random() * 30) + 10
+              }
+            : page
+        ));
+        
+        setProgress(((i + 1) / pages.length) * 100);
+      }
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'queued': return <Clock className="w-5 h-5 text-yellow-500" />;
-      case 'running': return <Zap className="w-5 h-5 text-blue-500 animate-pulse" />;
-      case 'done': return <CheckCircle2 className="w-5 h-5 text-green-500" />;
-      case 'error': return <XCircle className="w-5 h-5 text-red-500" />;
-      default: return <Clock className="w-5 h-5 text-gray-500" />;
+      setRenderingStatus('completed');
+    } catch (error: any) {
+      setError(error.message);
+      setRenderingStatus('idle');
+      setPages(prev => prev.map(page => ({ ...page, status: 'error' })));
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'queued': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400';
-      case 'running': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400';
-      case 'done': return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400';
-      case 'error': return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400';
-      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400';
+  const startUpscaling = async () => {
+    setRenderingStatus('upscaling');
+    setProgress(0);
+
+    try {
+      const response = await fetch('/api/upscale-pages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projectId,
+          pageIds: 'all',
+          upscaleFactor: 2
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to start upscaling');
+      }
+
+      // Simulate upscaling progress
+      for (let i = 0; i < pages.length; i++) {
+        await new Promise(resolve => setTimeout(resolve, 1000)); // 1 second per page
+        
+        setPages(prev => prev.map((page, index) => 
+          index === i 
+            ? { 
+                ...page, 
+                upscaledUrl: `https://images.unsplash.com/photo-${1600000000 + i}?w=1600&h=1600&fit=crop`
+              }
+            : page
+        ));
+        
+        setProgress(((i + 1) / pages.length) * 100);
+      }
+
+      setRenderingStatus('completed');
+    } catch (error: any) {
+      setError(error.message);
+      setRenderingStatus('idle');
     }
   };
 
-  const renderStages = [
-    { name: 'Style Analysis', description: 'Analyzing your chosen art style' },
-    { name: 'Base Generation', description: 'Creating initial page layouts' },
-    { name: 'Detail Enhancement', description: 'Adding fine details and consistency' },
-    { name: 'Upscaling', description: 'Enhancing to print resolution' },
-    { name: 'Final Processing', description: 'Preparing files for download' }
-  ];
+  const downloadPage = async (pageId: number) => {
+    try {
+      const response = await fetch(`/api/download?projectId=${projectId}&pageId=${pageId}&format=single`);
+      
+      if (!response.ok) {
+        throw new Error('Download failed');
+      }
+
+      // Create download link
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `coloring_page_${pageId}.png`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error: any) {
+      console.error('Download error:', error);
+    }
+  };
+
+  const downloadAllPages = async () => {
+    try {
+      const response = await fetch(`/api/download?projectId=${projectId}&format=zip`);
+      
+      if (!response.ok) {
+        throw new Error('Download failed');
+      }
+
+      // Create download link
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `coloring_book_${projectId}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error: any) {
+      console.error('Download error:', error);
+    }
+  };
+
+  const completedPages = pages.filter(page => page.status === 'completed');
+  const upscaledPages = pages.filter(page => page.upscaledUrl);
 
   return (
-    <div className="max-w-4xl mx-auto animate-fadeIn">
+    <div className="space-y-8">
       {/* Header */}
-      <div className="text-center mb-12">
-        <div className="flex items-center justify-center gap-3 mb-4">
-          <div className="w-12 h-12 bg-gradient-to-br from-accent to-secondary rounded-2xl flex items-center justify-center">
-            <Zap className="w-6 h-6 text-white" />
-          </div>
-          <h1 className="text-4xl font-bold">Generate Your Coloring Book</h1>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold gradient-text">Render Pages</h1>
+          <p className="text-muted-fg mt-2">Generate your coloring book pages with consistent style</p>
         </div>
-        <p className="text-xl text-muted-fg max-w-2xl mx-auto">
-          Time to bring your ideas to life! Our AI will create consistent, beautiful coloring pages ready for printing.
-        </p>
+        
+        {renderingStatus === 'completed' && (
+          <Button onClick={downloadAllPages} className="gap-2">
+            <Download className="w-4 h-4" />
+            Download All ({pages.length} pages)
+          </Button>
+        )}
       </div>
 
-      {/* Progress Steps */}
-      <div className="flex items-center justify-center mb-12">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm font-bold">✓</div>
-            <span className="text-primary font-medium">Style</span>
-          </div>
-          <div className="w-12 h-0.5 bg-primary"></div>
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm font-bold">✓</div>
-            <span className="text-primary font-medium">Ideas</span>
-          </div>
-          <div className="w-12 h-0.5 bg-primary"></div>
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm font-bold">3</div>
-            <span className="font-medium text-primary">Generate</span>
-          </div>
-          <div className="w-12 h-0.5 bg-muted"></div>
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-muted text-muted-fg rounded-full flex items-center justify-center text-sm font-bold">4</div>
-            <span className="text-muted-fg">Download</span>
+      {/* Progress Card */}
+      <Card className="p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-semibold text-lg">Generation Progress</h3>
+          <div className="text-sm text-muted-fg">
+            {completedPages.length} of {pages.length} pages completed
           </div>
         </div>
-      </div>
+        
+        <div className="w-full bg-muted rounded-full h-3 mb-4">
+          <div 
+            className="bg-gradient-to-r from-primary to-accent h-3 rounded-full transition-all duration-500"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
 
-      {/* Main Content */}
-      {!job ? (
-        <Card className="p-12 text-center">
-          <div className="max-w-md mx-auto">
-            <div className="w-20 h-20 bg-gradient-to-br from-accent to-secondary rounded-3xl flex items-center justify-center mx-auto mb-6">
-              <Play className="w-10 h-10 text-white" />
+        <div className="flex gap-4">
+          {renderingStatus === 'idle' && (
+            <Button onClick={startRendering} className="gap-2">
+              <Play className="w-4 h-4" />
+              Start Rendering
+            </Button>
+          )}
+          
+          {renderingStatus === 'completed' && upscaledPages.length === 0 && (
+            <Button onClick={startUpscaling} variant="secondary" className="gap-2">
+              <Zap className="w-4 h-4" />
+              Upscale Pages (2x)
+            </Button>
+          )}
+
+          {renderingStatus === 'completed' && upscaledPages.length > 0 && (
+            <div className="flex items-center gap-2 text-green-600">
+              <CheckCircle2 className="w-5 h-5" />
+              All pages rendered and upscaled!
             </div>
-            <h2 className="text-2xl font-bold mb-4">Ready to Generate</h2>
-            <p className="text-muted-fg mb-8">
-              Click the button below to start generating your coloring book pages. This process typically takes 2-5 minutes.
-            </p>
-            <Button size="lg" onClick={startRender} className="group">
-              <Play className="w-5 h-5 mr-2" />
-              Start Generation
-              <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+          )}
+        </div>
+
+        {error && (
+          <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-red-700">
+            <XCircle className="w-5 h-5" />
+            {error}
+          </div>
+        )}
+      </Card>
+
+      {/* Pages Grid */}
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {pages.map((page) => (
+          <Card key={page.id} className="overflow-hidden">
+            <div className="aspect-square bg-gradient-to-br from-muted to-muted/50 relative">
+              {page.renderUrl ? (
+                <img 
+                  src={page.upscaledUrl || page.renderUrl} 
+                  alt={page.title}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  {page.status === 'rendering' ? (
+                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                  ) : (
+                    <Image className="w-8 h-8 text-muted-fg" />
+                  )}
+                </div>
+              )}
+              
+              {/* Status Badge */}
+              <div className="absolute top-2 right-2">
+                {page.status === 'completed' && (
+                  <div className="bg-green-500 text-white px-2 py-1 rounded-full text-xs flex items-center gap-1">
+                    <CheckCircle2 className="w-3 h-3" />
+                    Done
+                  </div>
+                )}
+                {page.status === 'rendering' && (
+                  <div className="bg-blue-500 text-white px-2 py-1 rounded-full text-xs flex items-center gap-1">
+                    <Clock className="w-3 h-3" />
+                    Rendering
+                  </div>
+                )}
+                {page.status === 'error' && (
+                  <div className="bg-red-500 text-white px-2 py-1 rounded-full text-xs flex items-center gap-1">
+                    <XCircle className="w-3 h-3" />
+                    Error
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            <div className="p-4">
+              <h3 className="font-semibold mb-1 line-clamp-1">{page.title}</h3>
+              <p className="text-sm text-muted-fg mb-3 line-clamp-2">{page.description}</p>
+              
+              {page.status === 'completed' && (
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => downloadPage(page.id)}
+                  className="w-full gap-2"
+                >
+                  <Download className="w-4 h-4" />
+                  Download
+                </Button>
+              )}
+              
+              {page.renderTime && (
+                <div className="text-xs text-muted-fg mt-2">
+                  Rendered in {page.renderTime}s
+                </div>
+              )}
+            </div>
+          </Card>
+        ))}
+      </div>
+
+      {/* Next Step */}
+      {renderingStatus === 'completed' && (
+        <Card className="p-8 text-center bg-gradient-to-r from-primary/10 to-accent/10">
+          <h3 className="text-2xl font-bold mb-4">🎉 Your Coloring Book is Ready!</h3>
+          <p className="text-muted-fg mb-6">
+            All {pages.length} pages have been generated with consistent style and line weight.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button onClick={downloadAllPages} size="lg" className="gap-2">
+              <Download className="w-5 h-5" />
+              Download All Pages (ZIP)
+            </Button>
+            <Button 
+              variant="secondary" 
+              size="lg" 
+              onClick={() => router.push(`/projects/${projectId}/review`)}
+              className="gap-2"
+            >
+              Review Project <ArrowRight className="w-5 h-5" />
             </Button>
           </div>
         </Card>
-      ) : (
-        <div className="space-y-8">
-          {/* Status Card */}
-          <Card className="p-8">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-4">
-                {getStatusIcon(job.status)}
-                <div>
-                  <h2 className="text-xl font-bold">Generation {job.status === 'done' ? 'Complete!' : 'In Progress'}</h2>
-                  <p className="text-muted-fg">
-                    {job.status === 'queued' && 'Your job is queued and will start shortly...'}
-                    {job.status === 'running' && 'Creating your coloring book pages...'}
-                    {job.status === 'done' && 'All pages have been generated successfully!'}
-                    {job.status === 'error' && 'Something went wrong. Please try again.'}
-                  </p>
-                </div>
-              </div>
-              <span className={`px-4 py-2 rounded-full text-sm font-medium ${getStatusColor(job.status)}`}>
-                {job.status.charAt(0).toUpperCase() + job.status.slice(1)}
-              </span>
-            </div>
-
-            {/* Progress Bar */}
-            <div className="mb-6">
-              <div className="flex justify-between text-sm text-muted-fg mb-2">
-                <span>Progress</span>
-                <span>{Math.round(progress)}%</span>
-              </div>
-              <div className="w-full bg-muted rounded-full h-3">
-                <div 
-                  className="bg-gradient-to-r from-primary to-accent h-3 rounded-full transition-all duration-500 relative overflow-hidden"
-                  style={{ width: `${progress}%` }}
-                >
-                  {job.status === 'running' && (
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse"></div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {job.status === 'error' && job.errorText && (
-              <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-2xl mb-6">
-                <p className="text-destructive text-sm">{job.errorText}</p>
-              </div>
-            )}
-
-            {job.status === 'done' && (
-              <div className="text-center">
-                <Button size="lg" onClick={() => router.push(`/projects/${projectId}/review`)} className="group">
-                  View Your Coloring Book
-                  <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-                </Button>
-              </div>
-            )}
-          </Card>
-
-          {/* Process Stages */}
-          <Card className="p-8">
-            <h3 className="text-xl font-semibold mb-6">Generation Process</h3>
-            <div className="space-y-4">
-              {renderStages.map((stage, index) => {
-                const isActive = job.status === 'running' && index <= Math.floor(progress / 20);
-                const isComplete = job.status === 'done' || (job.status === 'running' && index < Math.floor(progress / 20));
-                
-                return (
-                  <div 
-                    key={index}
-                    className={`flex items-center gap-4 p-4 rounded-2xl transition-all ${
-                      isActive ? 'bg-primary/10 border border-primary/20' : 
-                      isComplete ? 'bg-green-50 border border-green-200' : 
-                      'bg-muted/50'
-                    }`}
-                  >
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                      isComplete ? 'bg-green-500 text-white' :
-                      isActive ? 'bg-primary text-white animate-pulse' :
-                      'bg-muted text-muted-fg'
-                    }`}>
-                      {isComplete ? '✓' : index + 1}
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-medium">{stage.name}</h4>
-                      <p className="text-sm text-muted-fg">{stage.description}</p>
-                    </div>
-                    {isActive && (
-                      <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </Card>
-        </div>
-      )}
-
-      {error && (
-        <div className="mt-8">
-          <div className="p-6 bg-destructive/10 border border-destructive/20 rounded-2xl text-center">
-            <XCircle className="w-12 h-12 text-destructive mx-auto mb-4" />
-            <h3 className="font-semibold text-lg mb-2">Generation Failed</h3>
-            <p className="text-destructive mb-4">{error}</p>
-            <Button onClick={startRender} className="gap-2">
-              <RotateCcw className="w-4 h-4" />
-              Try Again
-            </Button>
-          </div>
-        </div>
       )}
     </div>
   );

@@ -1,46 +1,139 @@
 "use client";
 
 import { useState } from 'react';
-import { ArrowRight, Sparkles, Palette, Book, Star, Upload, Type, Wand2 } from 'lucide-react';
+import { ArrowRight, Sparkles, Palette, Book, Star, Upload, Type, Wand2, RefreshCw, Loader2 } from 'lucide-react';
 import { Button, Card } from '@/components/ui';
 
 export default function NewProjectPage() {
   const [step, setStep] = useState(1);
+  const [loading, setLoading] = useState(false);
   const [projectData, setProjectData] = useState({
-    title: '',
-    description: '',
-    style: '',
-    pages: 12,
-    theme: ''
+    idea: '',
+    pageCount: 12,
+    selectedStyle: null as any,
+    generatedStyles: [] as any[],
+    pageIdeas: [] as any[]
   });
 
-  const styles = [
-    { id: 'realistic', name: 'Realistic', description: 'Detailed, lifelike illustrations', icon: '🎨' },
-    { id: 'cartoon', name: 'Cartoon', description: 'Fun, animated style perfect for kids', icon: '🎪' },
-    { id: 'minimalist', name: 'Minimalist', description: 'Simple, clean lines and shapes', icon: '✨' },
-    { id: 'fantasy', name: 'Fantasy', description: 'Magical creatures and worlds', icon: '🧚' },
-    { id: 'nature', name: 'Nature', description: 'Animals, plants, and landscapes', icon: '🌿' },
-    { id: 'geometric', name: 'Geometric', description: 'Patterns and abstract shapes', icon: '🔷' }
+  // Sample generated styles (these would come from API)
+  const sampleStyles = [
+    { 
+      id: 1, 
+      name: 'Whimsical Cartoon', 
+      description: 'Playful characters with bold outlines',
+      thumbnail: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=300&h=300&fit=crop'
+    },
+    { 
+      id: 2, 
+      name: 'Detailed Realistic', 
+      description: 'Intricate details and lifelike features',
+      thumbnail: 'https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=300&h=300&fit=crop'
+    },
+    { 
+      id: 3, 
+      name: 'Simple Line Art', 
+      description: 'Clean, minimalist outlines',
+      thumbnail: 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=300&h=300&fit=crop'
+    },
+    { 
+      id: 4, 
+      name: 'Fantasy Adventure', 
+      description: 'Magical elements and mystical creatures',
+      thumbnail: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=300&h=300&fit=crop'
+    },
+    { 
+      id: 5, 
+      name: 'Geometric Patterns', 
+      description: 'Abstract shapes and patterns',
+      thumbnail: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&h=300&fit=crop'
+    }
   ];
 
-  const themes = [
-    'Animals', 'Fairy Tales', 'Space Adventure', 'Ocean Life', 'Forest Friends', 
-    'Dinosaurs', 'Princesses', 'Vehicles', 'Food & Treats', 'Seasons'
-  ];
+  const generateStyles = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/generate-styles', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          idea: projectData.idea,
+          pageCount: projectData.pageCount 
+        })
+      });
+      const data = await response.json();
+      setProjectData({...projectData, generatedStyles: data.styles});
+      setStep(2);
+    } catch (error) {
+      console.error('Error generating styles:', error);
+      // For demo, use sample styles
+      setProjectData({...projectData, generatedStyles: sampleStyles});
+      setStep(2);
+    }
+    setLoading(false);
+  };
 
-  const handleNext = () => {
-    if (step < 3) setStep(step + 1);
+  const regenerateStyles = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/generate-styles', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          idea: projectData.idea,
+          pageCount: projectData.pageCount,
+          regenerate: true
+        })
+      });
+      const data = await response.json();
+      setProjectData({...projectData, generatedStyles: data.styles});
+    } catch (error) {
+      console.error('Error regenerating styles:', error);
+    }
+    setLoading(false);
+  };
+
+  const selectStyle = (style: any) => {
+    setProjectData({...projectData, selectedStyle: style});
+    setStep(3);
+  };
+
+  const generatePageIdeas = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/generate-page-ideas', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          idea: projectData.idea,
+          pageCount: projectData.pageCount,
+          style: projectData.selectedStyle
+        })
+      });
+      const data = await response.json();
+      setProjectData({...projectData, pageIdeas: data.pageIdeas});
+      setStep(4);
+    } catch (error) {
+      console.error('Error generating page ideas:', error);
+      // For demo, generate sample page ideas
+      const samplePageIdeas = Array.from({length: projectData.pageCount}, (_, i) => ({
+        id: i + 1,
+        title: `Page ${i + 1}`,
+        description: `A coloring page featuring elements from your ${projectData.idea} theme`,
+        thumbnail: `https://images.unsplash.com/photo-${1500000000 + i}?w=300&h=300&fit=crop`
+      }));
+      setProjectData({...projectData, pageIdeas: samplePageIdeas});
+      setStep(4);
+    }
+    setLoading(false);
   };
 
   const handleBack = () => {
     if (step > 1) setStep(step - 1);
   };
 
-  const handleCreateProject = () => {
-    // This would typically call an API to create the project
-    console.log('Creating project:', projectData);
-    // For now, redirect to dashboard
-    window.location.href = '/dashboard';
+  const proceedToRendering = () => {
+    // Redirect to the project rendering page
+    window.location.href = `/projects/new-project/render`;
   };
 
   return (
@@ -59,18 +152,26 @@ export default function NewProjectPage() {
         {/* Progress Steps */}
         <div className="flex justify-center mb-12">
           <div className="flex items-center space-x-4">
-            {[1, 2, 3].map((stepNum) => (
-              <div key={stepNum} className="flex items-center">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-all ${
-                  step >= stepNum 
-                    ? 'bg-primary text-white' 
-                    : 'bg-muted text-muted-fg'
-                }`}>
-                  {stepNum}
+            {[
+              { num: 1, label: 'Idea & Pages' },
+              { num: 2, label: 'Choose Style' },
+              { num: 3, label: 'Generate Ideas' },
+              { num: 4, label: 'Review & Edit' }
+            ].map((stepInfo, index) => (
+              <div key={stepInfo.num} className="flex items-center">
+                <div className="text-center">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-all ${
+                    step >= stepInfo.num 
+                      ? 'bg-primary text-white' 
+                      : 'bg-muted text-muted-fg'
+                  }`}>
+                    {stepInfo.num}
+                  </div>
+                  <div className="text-xs mt-1 text-muted-fg">{stepInfo.label}</div>
                 </div>
-                {stepNum < 3 && (
+                {index < 3 && (
                   <div className={`w-16 h-1 mx-2 transition-all ${
-                    step > stepNum ? 'bg-primary' : 'bg-muted'
+                    step > stepInfo.num ? 'bg-primary' : 'bg-muted'
                   }`} />
                 )}
               </div>
@@ -84,27 +185,28 @@ export default function NewProjectPage() {
             <div className="space-y-8">
               <div className="text-center">
                 <Book className="w-16 h-16 text-primary mx-auto mb-4" />
-                <h2 className="text-3xl font-bold mb-2">Project Details</h2>
-                <p className="text-muted-fg">Tell us about your coloring book idea</p>
+                <h2 className="text-3xl font-bold mb-2">Your Coloring Book Idea</h2>
+                <p className="text-muted-fg">Tell us your idea and how many pages you want</p>
               </div>
 
-              <div className="grid md:grid-cols-2 gap-8">
+              <div className="space-y-6">
                 <div>
-                  <label className="block text-sm font-medium mb-2">Project Title</label>
-                  <input
-                    type="text"
-                    placeholder="e.g., Magical Forest Adventures"
-                    value={projectData.title}
-                    onChange={(e) => setProjectData({...projectData, title: e.target.value})}
-                    className="w-full px-4 py-3 bg-muted rounded-2xl border-0 focus:ring-2 focus:ring-primary focus:outline-none transition-all"
+                  <label className="block text-sm font-medium mb-2">Your Idea</label>
+                  <textarea
+                    placeholder="e.g., Magical forest with friendly animals, underwater adventure with sea creatures, space exploration with aliens..."
+                    value={projectData.idea}
+                    onChange={(e) => setProjectData({...projectData, idea: e.target.value})}
+                    rows={4}
+                    className="w-full px-4 py-3 bg-muted rounded-2xl border-0 focus:ring-2 focus:ring-primary focus:outline-none transition-all resize-none"
                   />
+                  <p className="text-xs text-muted-fg mt-2">Be as descriptive as possible - this helps generate better styles and pages!</p>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium mb-2">Number of Pages</label>
                   <select
-                    value={projectData.pages}
-                    onChange={(e) => setProjectData({...projectData, pages: parseInt(e.target.value)})}
+                    value={projectData.pageCount}
+                    onChange={(e) => setProjectData({...projectData, pageCount: parseInt(e.target.value)})}
                     className="w-full px-4 py-3 bg-muted rounded-2xl border-0 focus:ring-2 focus:ring-primary focus:outline-none transition-all"
                   >
                     <option value={8}>8 Pages</option>
@@ -115,17 +217,6 @@ export default function NewProjectPage() {
                   </select>
                 </div>
               </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">Description</label>
-                <textarea
-                  placeholder="Describe your coloring book theme, characters, or story..."
-                  value={projectData.description}
-                  onChange={(e) => setProjectData({...projectData, description: e.target.value})}
-                  rows={4}
-                  className="w-full px-4 py-3 bg-muted rounded-2xl border-0 focus:ring-2 focus:ring-primary focus:outline-none transition-all resize-none"
-                />
-              </div>
             </div>
           )}
 
@@ -134,27 +225,43 @@ export default function NewProjectPage() {
               <div className="text-center">
                 <Palette className="w-16 h-16 text-primary mx-auto mb-4" />
                 <h2 className="text-3xl font-bold mb-2">Choose Your Style</h2>
-                <p className="text-muted-fg">Select the artistic style for your coloring book</p>
+                <p className="text-muted-fg">AI generated 5 styles based on your idea - pick one or regenerate</p>
               </div>
 
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {styles.map((style) => (
+                {(projectData.generatedStyles.length > 0 ? projectData.generatedStyles : sampleStyles).map((style) => (
                   <Card 
                     key={style.id}
-                    className={`p-6 cursor-pointer transition-all hover:scale-[1.02] ${
-                      projectData.style === style.id 
+                    className={`group cursor-pointer transition-all hover:scale-[1.02] ${
+                      projectData.selectedStyle?.id === style.id 
                         ? 'ring-2 ring-primary bg-primary/5' 
                         : 'hover:shadow-lg'
                     }`}
-                    onClick={() => setProjectData({...projectData, style: style.id})}
+                    onClick={() => selectStyle(style)}
                   >
-                    <div className="text-center">
-                      <div className="text-4xl mb-3">{style.icon}</div>
-                      <h3 className="font-semibold text-lg mb-2">{style.name}</h3>
-                      <p className="text-sm text-muted-fg">{style.description}</p>
+                    <div className="aspect-square bg-gradient-to-br from-muted to-muted/50 rounded-lg mb-4 overflow-hidden">
+                      <img 
+                        src={style.thumbnail} 
+                        alt={style.name}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                      />
                     </div>
+                    <h3 className="font-semibold text-lg mb-2">{style.name}</h3>
+                    <p className="text-sm text-muted-fg">{style.description}</p>
                   </Card>
                 ))}
+              </div>
+
+              <div className="text-center">
+                <Button 
+                  variant="ghost" 
+                  onClick={regenerateStyles}
+                  disabled={loading}
+                  className="gap-2"
+                >
+                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+                  {loading ? 'Generating...' : 'Regenerate Styles'}
+                </Button>
               </div>
             </div>
           )}
@@ -163,40 +270,113 @@ export default function NewProjectPage() {
             <div className="space-y-8">
               <div className="text-center">
                 <Wand2 className="w-16 h-16 text-primary mx-auto mb-4" />
-                <h2 className="text-3xl font-bold mb-2">Choose a Theme</h2>
-                <p className="text-muted-fg">What should your coloring book be about?</p>
+                <h2 className="text-3xl font-bold mb-2">Generate Page Ideas</h2>
+                <p className="text-muted-fg">AI will create {projectData.pageCount} page ideas in your chosen style</p>
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                {themes.map((theme) => (
-                  <Button
-                    key={theme}
-                    variant={projectData.theme === theme ? "primary" : "ghost"}
-                    className={`h-auto py-4 px-6 text-center transition-all ${
-                      projectData.theme === theme ? 'ring-2 ring-primary' : ''
-                    }`}
-                    onClick={() => setProjectData({...projectData, theme})}
-                  >
-                    {theme}
-                  </Button>
+              {/* Selected Style Preview */}
+              <Card className="bg-gradient-to-r from-primary/10 to-accent/10 p-6">
+                <h3 className="font-semibold text-lg mb-4">Selected Style</h3>
+                <div className="flex items-center gap-4">
+                  <img 
+                    src={projectData.selectedStyle?.thumbnail} 
+                    alt={projectData.selectedStyle?.name}
+                    className="w-20 h-20 rounded-lg object-cover"
+                  />
+                  <div>
+                    <h4 className="font-semibold">{projectData.selectedStyle?.name}</h4>
+                    <p className="text-sm text-muted-fg">{projectData.selectedStyle?.description}</p>
+                  </div>
+                </div>
+              </Card>
+
+              <div className="text-center">
+                <Button 
+                  onClick={generatePageIdeas}
+                  disabled={loading}
+                  size="lg"
+                  className="gap-2"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Generating Page Ideas...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-5 h-5" />
+                      Generate {projectData.pageCount} Page Ideas
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {step === 4 && (
+            <div className="space-y-8">
+              <div className="text-center">
+                <Star className="w-16 h-16 text-primary mx-auto mb-4" />
+                <h2 className="text-3xl font-bold mb-2">Review & Edit Page Ideas</h2>
+                <p className="text-muted-fg">Edit page ideas and adjust page count if needed</p>
+              </div>
+
+              {/* Page Count Adjuster */}
+              <div className="flex items-center justify-center gap-4 mb-6">
+                <label className="font-medium">Page Count:</label>
+                <select
+                  value={projectData.pageCount}
+                  onChange={(e) => {
+                    const newCount = parseInt(e.target.value);
+                    setProjectData({...projectData, pageCount: newCount});
+                    // Would trigger re-generation of page ideas
+                  }}
+                  className="px-4 py-2 bg-muted rounded-xl border-0 focus:ring-2 focus:ring-primary focus:outline-none"
+                >
+                  <option value={8}>8 Pages</option>
+                  <option value={12}>12 Pages</option>
+                  <option value={16}>16 Pages</option>
+                  <option value={24}>24 Pages</option>
+                  <option value={32}>32 Pages</option>
+                </select>
+              </div>
+
+              {/* Page Ideas Grid */}
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {projectData.pageIdeas.map((page, index) => (
+                  <Card key={page.id} className="p-4">
+                    <div className="aspect-square bg-gradient-to-br from-muted to-muted/50 rounded-lg mb-3 overflow-hidden">
+                      <img 
+                        src={page.thumbnail} 
+                        alt={page.title}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <input
+                      type="text"
+                      value={page.title}
+                      onChange={(e) => {
+                        const updatedIdeas = projectData.pageIdeas.map(p => 
+                          p.id === page.id ? {...p, title: e.target.value} : p
+                        );
+                        setProjectData({...projectData, pageIdeas: updatedIdeas});
+                      }}
+                      className="w-full font-semibold mb-2 bg-transparent border-0 focus:bg-muted rounded px-2 py-1 focus:outline-none"
+                    />
+                    <textarea
+                      value={page.description}
+                      onChange={(e) => {
+                        const updatedIdeas = projectData.pageIdeas.map(p => 
+                          p.id === page.id ? {...p, description: e.target.value} : p
+                        );
+                        setProjectData({...projectData, pageIdeas: updatedIdeas});
+                      }}
+                      rows={2}
+                      className="w-full text-sm text-muted-fg bg-transparent border-0 focus:bg-muted rounded px-2 py-1 focus:outline-none resize-none"
+                    />
+                  </Card>
                 ))}
               </div>
-
-              {/* Project Summary */}
-              <Card className="bg-gradient-to-r from-primary/10 to-accent/10 p-6">
-                <h3 className="font-semibold text-lg mb-4">Project Summary</h3>
-                <div className="grid md:grid-cols-2 gap-4 text-sm">
-                  <div><strong>Title:</strong> {projectData.title || 'Untitled Project'}</div>
-                  <div><strong>Pages:</strong> {projectData.pages}</div>
-                  <div><strong>Style:</strong> {styles.find(s => s.id === projectData.style)?.name || 'Not selected'}</div>
-                  <div><strong>Theme:</strong> {projectData.theme || 'Not selected'}</div>
-                </div>
-                {projectData.description && (
-                  <div className="mt-4">
-                    <strong>Description:</strong> {projectData.description}
-                  </div>
-                )}
-              </Card>
             </div>
           )}
 
@@ -205,35 +385,56 @@ export default function NewProjectPage() {
             <Button 
               variant="ghost" 
               onClick={handleBack}
-              disabled={step === 1}
+              disabled={step === 1 || loading}
               className="gap-2"
             >
               ← Back
             </Button>
 
             <div className="text-sm text-muted-fg">
-              Step {step} of 3
+              Step {step} of 4
             </div>
 
-            {step < 3 ? (
+            {step === 1 && (
               <Button 
-                onClick={handleNext}
-                disabled={
-                  (step === 1 && !projectData.title) ||
-                  (step === 2 && !projectData.style)
-                }
+                onClick={generateStyles}
+                disabled={!projectData.idea || loading}
                 className="gap-2"
               >
-                Next <ArrowRight className="w-4 h-4" />
+                {loading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-4 h-4" />
+                    Generate Styles
+                  </>
+                )}
               </Button>
-            ) : (
+            )}
+
+            {step === 2 && (
+              <div className="text-sm text-muted-fg">
+                Select a style to continue
+              </div>
+            )}
+
+            {step === 3 && (
+              <div className="text-sm text-muted-fg">
+                Click Generate to create page ideas
+              </div>
+            )}
+
+            {step === 4 && (
               <Button 
-                onClick={handleCreateProject}
-                disabled={!projectData.title || !projectData.style || !projectData.theme}
+                onClick={proceedToRendering}
+                disabled={projectData.pageIdeas.length === 0}
                 className="gap-2 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90"
               >
-                <Sparkles className="w-4 h-4" />
-                Create Project
+                <Wand2 className="w-4 h-4" />
+                Render Pages
               </Button>
             )}
           </div>

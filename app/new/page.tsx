@@ -39,8 +39,8 @@ export default function NewProjectPage() {
   const handleCreateProject = () => {
     // This would typically call an API to create the project
     console.log('Creating project:', projectData);
-    // For now, redirect to projects page
-    window.location.href = '/projects';
+    // For now, redirect to dashboard
+    window.location.href = '/dashboard';
   };
 
   return (

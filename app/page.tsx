@@ -23,7 +23,7 @@ export default function LandingPage() {
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <a 
-                  href="/app/new" 
+                  href="/new" 
                   className="inline-flex items-center justify-center px-8 py-4 bg-white text-primary font-semibold rounded-2xl hover:bg-gray-100 transition-all duration-200 hover:scale-[1.02]"
                 >
                   Start Creating Now

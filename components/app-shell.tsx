@@ -8,10 +8,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const [dark, setDark] = useState(false);
   
   const navItems = [
-    { href: '/app', icon: Home, label: 'Projects', active: true },
-    { href: '/app/new', icon: Plus, label: 'New Project' },
-    { href: '/app/account', icon: User, label: 'Account' },
-    { href: '/app/settings', icon: Settings, label: 'Settings' },
+    { href: '/dashboard', icon: Home, label: 'Projects', active: true },
+    { href: '/new', icon: Plus, label: 'New Project' },
+    { href: '/account', icon: User, label: 'Account' },
+    { href: '/settings', icon: Settings, label: 'Settings' },
   ];
 
   return (

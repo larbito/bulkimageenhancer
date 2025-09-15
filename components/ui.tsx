@@ -16,7 +16,7 @@ export function Navbar() {
             <Link href="#features" className="text-muted-fg hover:text-fg transition-colors">Features</Link>
             <Link href="#how-it-works" className="text-muted-fg hover:text-fg transition-colors">How it works</Link>
             <Link href="#pricing" className="text-muted-fg hover:text-fg transition-colors">Pricing</Link>
-            <Link href="/app" className="btn-primary">Get started</Link>
+            <Link href="/dashboard" className="btn-primary">Get started</Link>
           </nav>
         </div>
       </div>
@@ -41,7 +41,7 @@ export function Footer() {
           <div>
             <h3 className="font-semibold mb-4">Product</h3>
             <div className="space-y-2 text-muted-fg">
-              <Link href="/app" className="block hover:text-fg">Dashboard</Link>
+              <Link href="/dashboard" className="block hover:text-fg">Dashboard</Link>
               <Link href="#features" className="block hover:text-fg">Features</Link>
               <Link href="#pricing" className="block hover:text-fg">Pricing</Link>
             </div>

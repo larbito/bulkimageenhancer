@@ -72,6 +72,8 @@ export default function NewProjectPage() {
   const generateStyles = async () => {
     setLoading(true);
     try {
+      console.log('Calling API to generate styles for:', projectData.idea);
+      
       const response = await fetch('/api/generate-styles', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -80,12 +82,23 @@ export default function NewProjectPage() {
           pageCount: projectData.pageCount 
         })
       });
+      
+      console.log('API Response status:', response.status);
+      
+      if (!response.ok) {
+        throw new Error(`API call failed with status: ${response.status}`);
+      }
+      
       const data = await response.json();
-      setProjectData({...projectData, generatedStyles: data.styles});
+      console.log('Generated styles data:', data);
+      
+      // Always use the API response, even if it's fallback data
+      setProjectData({...projectData, generatedStyles: data.styles || []});
       setStep(2);
     } catch (error) {
       console.error('Error generating styles:', error);
-      // For demo, use sample styles
+      console.log('Using fallback sample styles due to error');
+      // Use sample styles as fallback
       setProjectData({...projectData, generatedStyles: sampleStyles});
       setStep(2);
     }
@@ -95,6 +108,8 @@ export default function NewProjectPage() {
   const regenerateStyles = async () => {
     setLoading(true);
     try {
+      console.log('Regenerating styles for:', projectData.idea);
+      
       const response = await fetch('/api/generate-styles', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -104,10 +119,22 @@ export default function NewProjectPage() {
           regenerate: true
         })
       });
+      
+      if (!response.ok) {
+        throw new Error(`API call failed with status: ${response.status}`);
+      }
+      
       const data = await response.json();
-      setProjectData({...projectData, generatedStyles: data.styles});
+      console.log('Regenerated styles data:', data);
+      
+      // Always use the API response
+      setProjectData({...projectData, generatedStyles: data.styles || []});
     } catch (error) {
       console.error('Error regenerating styles:', error);
+      // Keep existing styles or use samples if none exist
+      if (projectData.generatedStyles.length === 0) {
+        setProjectData({...projectData, generatedStyles: sampleStyles});
+      }
     }
     setLoading(false);
   };

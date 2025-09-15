@@ -1,1 +1,0 @@
-web: cd worker && npm run deploy && npm start

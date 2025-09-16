@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
             lineThickness: 'thick',
             complexity: 'simple',
             characterStyle: 'cartoon',
-            prompt: `${idea}, cartoon style coloring page, thick black outlines, simple shapes, bold lines, kid-friendly design, black and white line art only, no shading, clean white background`
+            prompt: `Single coloring page featuring ${idea}, cartoon style, thick black outlines, simple shapes, bold lines, kid-friendly design, black and white line art only, no shading, clean white background, single page layout, 8.5x11 format, not a book`
           },
           {
             id: 2,
@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
             lineThickness: 'fine',
             complexity: 'detailed',
             characterStyle: 'realistic',
-            prompt: `${idea}, realistic detailed coloring page, fine thin lines, intricate details, realistic proportions, complex line art, black and white only, no shading, clean white background`
+            prompt: `Single coloring page featuring ${idea}, realistic detailed style, fine thin lines, intricate details, realistic proportions, complex line art, black and white only, no shading, clean white background, single page layout, 8.5x11 format, not a book`
           },
           {
             id: 3,
@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
             lineThickness: 'medium',
             complexity: 'moderate',
             characterStyle: 'semi-realistic',
-            prompt: `${idea}, medium line weight coloring page, balanced detail level, moderate complexity, clean line art, black and white only, no shading, clean white background`
+            prompt: `Single coloring page featuring ${idea}, medium line weight, balanced detail level, moderate complexity, clean line art, black and white only, no shading, clean white background, single page layout, 8.5x11 format, not a book`
           },
           {
             id: 4,
@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
             lineThickness: 'varied',
             complexity: 'moderate',
             characterStyle: 'fantasy',
-            prompt: `${idea}, whimsical fantasy coloring page, flowing curved lines, magical elements, dreamy artistic style, varied line weights, black and white line art only, no shading, clean white background`
+            prompt: `Single coloring page featuring ${idea}, whimsical fantasy style, flowing curved lines, magical elements, dreamy artistic style, varied line weights, black and white line art only, no shading, clean white background, single page layout, 8.5x11 format, not a book`
           },
           {
             id: 5,
@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
             lineThickness: 'thin',
             complexity: 'simple',
             characterStyle: 'geometric',
-            prompt: `${idea}, minimalist coloring page, very thin clean lines, geometric shapes, modern simple design, minimal detail, black and white line art only, no shading, clean white background`
+            prompt: `Single coloring page featuring ${idea}, minimalist style, very thin clean lines, geometric shapes, modern simple design, minimal detail, black and white line art only, no shading, clean white background, single page layout, 8.5x11 format, not a book`
           }
         ];
 

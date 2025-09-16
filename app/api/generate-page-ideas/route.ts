@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
           const themeIndex = i % pageThemes.length;
           const baseTheme = pageThemes[themeIndex];
           
-          const prompt = `${baseTheme} featuring ${idea}, ${style.stylePrompt}, page ${pageNumber} of coloring book, black and white line art only, no shading, clean white background`;
+          const prompt = `Single coloring page: ${baseTheme} featuring ${idea}, ${style.stylePrompt}, black and white line art only, no shading, clean white background, single page layout, 8.5x11 format, not a book`;
           
           const response = await openai.images.generate({
             model: "dall-e-3",

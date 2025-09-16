@@ -21,12 +21,54 @@ export async function POST(req: NextRequest) {
       try {
         console.log(`🎨 RAILWAY: Generating ${extractedIdeas.length} coloring pages for theme: ${mainTheme}`);
         
+        // First, establish character design consistency
+        const characterPrompt = `Reference character design for ${mainTheme}: Simple, cute ${mainTheme} character for kids coloring book. Round friendly face, big eyes, simple body proportions, thick black outlines, no shading, white background. This character should look the same in every page.`;
+        
+        console.log('🎯 Establishing character consistency...');
+        const characterRef = await openai.images.generate({
+          model: "dall-e-3",
+          prompt: characterPrompt,
+          n: 1,
+          size: "1024x1024",
+          quality: "standard",
+          style: "natural"
+        });
+        
+        const characterRefUrl = characterRef.data?.[0]?.url;
+        console.log(`✅ Character reference established: ${characterRefUrl ? 'SUCCESS' : 'FAILED'}`);
+        
         // Generate actual coloring pages for each specific idea
         const pagePromises = extractedIdeas.map(async (pageIdea: any) => {
           console.log(`🎨 Generating coloring page: ${pageIdea.title}`);
           
-          // Create specific prompt for this page
-          const prompt = `Coloring book page: ${pageIdea.description}, black outline only, no filled black areas, no shading, no solid black shapes, only outlines to color, white background, single A4 page, coloring sheet format, consistent ${mainTheme} character design`;
+          // Create specific prompt for this page with character consistency
+          const prompt = `Simple kids coloring book page: ${pageIdea.description}
+
+EXACT CHARACTER REQUIREMENTS:
+- Use the EXACT same ${mainTheme} character design from previous pages
+- Round cute face with big friendly eyes
+- Simple body proportions perfect for kids
+- Same character appearance, size, and style every time
+
+DESIGN REQUIREMENTS:
+- Thick black outlines only (like children's coloring books)
+- Very simple, not complicated
+- No filled black areas anywhere
+- No shading, no gradients, no complex details
+- Clean white background
+- Single focused scene (not busy or cluttered)
+- Easy for 4-8 year olds to color
+- Professional kids coloring book quality
+
+LAYOUT:
+- Single A4 page format
+- One main scene with simple background elements
+- Character as the main focus
+- Simple, organized composition`;
+          
+          console.log(`🎨 Generating page ${pageIdea.pageNumber}: ${pageIdea.title}`);
+          
+          console.log(`🎨 Prompt for ${pageIdea.title}: ${prompt.substring(0, 100)}...`);
           
           const response = await openai.images.generate({
             model: "dall-e-3",

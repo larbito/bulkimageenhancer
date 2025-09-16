@@ -32,61 +32,59 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Fallback or if worker API not configured:
-      // Fallback: Generate 5 actual coloring page samples with different styles
-      // These would be real AI-generated coloring pages based on the user's idea
-      const styleVariations = [
-        { 
-          id: 1, 
-          name: 'Bold Cartoon Style', 
-          description: 'Thick lines, simple shapes, kid-friendly',
-          lineThickness: 'thick',
-          complexity: 'simple',
-          characterStyle: 'cartoon',
-          coloringPageUrl: `https://via.placeholder.com/400x400/ffffff/000000?text=${encodeURIComponent(idea + ' - Bold Cartoon')}`,
-          stylePrompt: `${idea}, cartoon style, thick black outlines, simple shapes, coloring book page, black and white line art`
-        },
-        { 
-          id: 2, 
-          name: 'Detailed Realistic', 
-          description: 'Fine lines, intricate details, realistic proportions',
-          lineThickness: 'fine',
-          complexity: 'detailed',
-          characterStyle: 'realistic',
-          coloringPageUrl: `https://via.placeholder.com/400x400/ffffff/000000?text=${encodeURIComponent(idea + ' - Detailed')}`,
-          stylePrompt: `${idea}, realistic style, fine line art, detailed, intricate, coloring book page, black and white`
-        },
-        { 
-          id: 3, 
-          name: 'Medium Line Art', 
-          description: 'Balanced lines, moderate detail, versatile',
-          lineThickness: 'medium',
-          complexity: 'moderate',
-          characterStyle: 'semi-realistic',
-          coloringPageUrl: `https://via.placeholder.com/400x400/ffffff/000000?text=${encodeURIComponent(idea + ' - Medium')}`,
-          stylePrompt: `${idea}, medium line weight, balanced detail, coloring book page, black and white line art`
-        },
-        { 
-          id: 4, 
-          name: 'Whimsical Fantasy', 
-          description: 'Flowing lines, magical elements, dreamy style',
-          lineThickness: 'varied',
-          complexity: 'moderate',
-          characterStyle: 'fantasy',
-          coloringPageUrl: `https://via.placeholder.com/400x400/ffffff/000000?text=${encodeURIComponent(idea + ' - Fantasy')}`,
-          stylePrompt: `${idea}, whimsical fantasy style, flowing lines, magical elements, coloring book page, black and white`
-        },
-        { 
-          id: 5, 
-          name: 'Minimalist Clean', 
-          description: 'Very thin lines, geometric, modern style',
-          lineThickness: 'thin',
-          complexity: 'simple',
-          characterStyle: 'geometric',
-          coloringPageUrl: `https://via.placeholder.com/400x400/ffffff/000000?text=${encodeURIComponent(idea + ' - Minimal')}`,
-          stylePrompt: `${idea}, minimalist style, thin lines, geometric shapes, modern, coloring book page, black and white`
-        }
-      ];
+    // Fallback: Generate 5 actual coloring page samples with different styles
+    const styleVariations = [
+      { 
+        id: 1, 
+        name: 'Bold Cartoon Style', 
+        description: 'Thick lines, simple shapes, kid-friendly',
+        lineThickness: 'thick',
+        complexity: 'simple',
+        characterStyle: 'cartoon',
+        coloringPageUrl: `https://via.placeholder.com/400x400/ffffff/000000?text=${encodeURIComponent(idea + ' - Bold Cartoon')}`,
+        stylePrompt: `${idea}, cartoon style, thick black outlines, simple shapes, coloring book page, black and white line art`
+      },
+      { 
+        id: 2, 
+        name: 'Detailed Realistic', 
+        description: 'Fine lines, intricate details, realistic proportions',
+        lineThickness: 'fine',
+        complexity: 'detailed',
+        characterStyle: 'realistic',
+        coloringPageUrl: `https://via.placeholder.com/400x400/ffffff/000000?text=${encodeURIComponent(idea + ' - Detailed')}`,
+        stylePrompt: `${idea}, realistic style, fine line art, detailed, intricate, coloring book page, black and white`
+      },
+      { 
+        id: 3, 
+        name: 'Medium Line Art', 
+        description: 'Balanced lines, moderate detail, versatile',
+        lineThickness: 'medium',
+        complexity: 'moderate',
+        characterStyle: 'semi-realistic',
+        coloringPageUrl: `https://via.placeholder.com/400x400/ffffff/000000?text=${encodeURIComponent(idea + ' - Medium')}`,
+        stylePrompt: `${idea}, medium line weight, balanced detail, coloring book page, black and white line art`
+      },
+      { 
+        id: 4, 
+        name: 'Whimsical Fantasy', 
+        description: 'Flowing lines, magical elements, dreamy style',
+        lineThickness: 'varied',
+        complexity: 'moderate',
+        characterStyle: 'fantasy',
+        coloringPageUrl: `https://via.placeholder.com/400x400/ffffff/000000?text=${encodeURIComponent(idea + ' - Fantasy')}`,
+        stylePrompt: `${idea}, whimsical fantasy style, flowing lines, magical elements, coloring book page, black and white`
+      },
+      { 
+        id: 5, 
+        name: 'Minimalist Clean', 
+        description: 'Very thin lines, geometric, modern style',
+        lineThickness: 'thin',
+        complexity: 'simple',
+        characterStyle: 'geometric',
+        coloringPageUrl: `https://via.placeholder.com/400x400/ffffff/000000?text=${encodeURIComponent(idea + ' - Minimal')}`,
+        stylePrompt: `${idea}, minimalist style, thin lines, geometric shapes, modern, coloring book page, black and white`
+      }
+    ];
 
     return NextResponse.json({ 
       styles: styleVariations.map(style => ({

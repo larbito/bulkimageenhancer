@@ -162,8 +162,7 @@ export default function NewProjectPage() {
     setLoading(false);
   };
 
-  const selectStyle = (style: any) => {
-    setProjectData({...projectData, selectedStyle: style});
+  const generateAllPages = () => {
     setStep(3);
   };
 
@@ -176,11 +175,11 @@ export default function NewProjectPage() {
         body: JSON.stringify({
           idea: projectData.idea,
           pageCount: projectData.pageCount,
-          style: projectData.selectedStyle
+          extractedIdeas: projectData.extractedIdeas
         })
       });
       const data = await response.json();
-      setProjectData({...projectData, pageIdeas: data.pageIdeas});
+      setProjectData({...projectData, generatedPages: data.pageIdeas});
       setStep(4);
     } catch (error) {
       console.error('Error generating page ideas:', error);
@@ -191,7 +190,7 @@ export default function NewProjectPage() {
         description: `A coloring page featuring elements from your ${projectData.idea} theme`,
         thumbnail: `https://images.unsplash.com/photo-${1500000000 + i}?w=300&h=300&fit=crop`
       }));
-      setProjectData({...projectData, pageIdeas: samplePageIdeas});
+      setProjectData({...projectData, generatedPages: samplePageIdeas});
       setStep(4);
     }
     setLoading(false);
@@ -425,19 +424,12 @@ export default function NewProjectPage() {
                 <p className="text-muted-fg">AI will create {projectData.pageCount} page ideas in your chosen style</p>
               </div>
 
-              {/* Selected Style Preview */}
+              {/* Page Ideas Summary */}
               <Card className="bg-gradient-to-r from-primary/10 to-accent/10 p-6">
-                <h3 className="font-semibold text-lg mb-4">Selected Style</h3>
-                <div className="flex items-center gap-4">
-                  <img 
-                    src={projectData.selectedStyle?.thumbnail} 
-                    alt={projectData.selectedStyle?.name}
-                    className="w-20 h-20 rounded-lg object-cover"
-                  />
-                  <div>
-                    <h4 className="font-semibold">{projectData.selectedStyle?.name}</h4>
-                    <p className="text-sm text-muted-fg">{projectData.selectedStyle?.description}</p>
-                  </div>
+                <h3 className="font-semibold text-lg mb-4">Ready to Generate</h3>
+                <div className="text-center">
+                  <p className="text-lg font-medium mb-2">{projectData.extractedIdeas.length} Pages Ready</p>
+                  <p className="text-sm text-muted-fg">All pages will be generated with consistent styling and the same character design</p>
                 </div>
               </Card>
 
@@ -492,9 +484,9 @@ export default function NewProjectPage() {
                 </select>
               </div>
 
-              {/* Page Ideas Grid */}
+              {/* Generated Pages Grid */}
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {projectData.pageIdeas.map((page, index) => (
+                {projectData.generatedPages.map((page, index) => (
                   <Card key={page.id} className="p-4">
                     <div className="aspect-square bg-gradient-to-br from-muted to-muted/50 rounded-lg mb-3 overflow-hidden">
                       <img 
@@ -507,20 +499,20 @@ export default function NewProjectPage() {
                       type="text"
                       value={page.title}
                       onChange={(e) => {
-                        const updatedIdeas = projectData.pageIdeas.map(p => 
+                        const updatedPages = projectData.generatedPages.map(p => 
                           p.id === page.id ? {...p, title: e.target.value} : p
                         );
-                        setProjectData({...projectData, pageIdeas: updatedIdeas});
+                        setProjectData({...projectData, generatedPages: updatedPages});
                       }}
                       className="w-full font-semibold mb-2 bg-transparent border-0 focus:bg-muted rounded px-2 py-1 focus:outline-none"
                     />
                     <textarea
                       value={page.description}
                       onChange={(e) => {
-                        const updatedIdeas = projectData.pageIdeas.map(p => 
+                        const updatedPages = projectData.generatedPages.map(p => 
                           p.id === page.id ? {...p, description: e.target.value} : p
                         );
-                        setProjectData({...projectData, pageIdeas: updatedIdeas});
+                        setProjectData({...projectData, generatedPages: updatedPages});
                       }}
                       rows={2}
                       className="w-full text-sm text-muted-fg bg-transparent border-0 focus:bg-muted rounded px-2 py-1 focus:outline-none resize-none"
@@ -586,7 +578,7 @@ export default function NewProjectPage() {
             {step === 4 && (
               <Button 
                 onClick={proceedToRendering}
-                disabled={projectData.pageIdeas.length === 0}
+                disabled={projectData.generatedPages.length === 0}
                 className="gap-2 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90"
               >
                 <Wand2 className="w-4 h-4" />

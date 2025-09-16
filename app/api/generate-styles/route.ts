@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
             lineThickness: 'thick',
             complexity: 'simple',
             characterStyle: 'cartoon',
-            prompt: `Single coloring page featuring ${idea}, cartoon style, thick black outlines, simple shapes, bold lines, kid-friendly design, black and white line art only, no shading, clean white background, single page layout, 8.5x11 format, not a book`
+            prompt: `Coloring book page of ${idea}, cartoon style, thick black outline only, simple line art, no filled black areas, no shading, no solid black shapes, only outlines to color, white background, single A4 page, coloring sheet format`
           },
           {
             id: 2,
@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
             lineThickness: 'fine',
             complexity: 'detailed',
             characterStyle: 'realistic',
-            prompt: `Single coloring page featuring ${idea}, realistic detailed style, fine thin lines, intricate details, realistic proportions, complex line art, black and white only, no shading, clean white background, single page layout, 8.5x11 format, not a book`
+            prompt: `Coloring book page of ${idea}, realistic style, fine black outline only, detailed line art, no filled black areas, no shading, no solid black shapes, only outlines to color, white background, single A4 page, coloring sheet format`
           },
           {
             id: 3,
@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
             lineThickness: 'medium',
             complexity: 'moderate',
             characterStyle: 'semi-realistic',
-            prompt: `Single coloring page featuring ${idea}, medium line weight, balanced detail level, moderate complexity, clean line art, black and white only, no shading, clean white background, single page layout, 8.5x11 format, not a book`
+            prompt: `Coloring book page of ${idea}, medium black outline only, balanced detail, moderate complexity, no filled black areas, no shading, no solid black shapes, only outlines to color, white background, single A4 page, coloring sheet format`
           },
           {
             id: 4,
@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
             lineThickness: 'varied',
             complexity: 'moderate',
             characterStyle: 'fantasy',
-            prompt: `Single coloring page featuring ${idea}, whimsical fantasy style, flowing curved lines, magical elements, dreamy artistic style, varied line weights, black and white line art only, no shading, clean white background, single page layout, 8.5x11 format, not a book`
+            prompt: `Coloring book page of ${idea}, whimsical fantasy style, flowing black outline only, magical elements, no filled black areas, no shading, no solid black shapes, only outlines to color, white background, single A4 page, coloring sheet format`
           },
           {
             id: 5,
@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
             lineThickness: 'thin',
             complexity: 'simple',
             characterStyle: 'geometric',
-            prompt: `Single coloring page featuring ${idea}, minimalist style, very thin clean lines, geometric shapes, modern simple design, minimal detail, black and white line art only, no shading, clean white background, single page layout, 8.5x11 format, not a book`
+            prompt: `Coloring book page of ${idea}, minimalist style, thin black outline only, geometric shapes, simple design, no filled black areas, no shading, no solid black shapes, only outlines to color, white background, single A4 page, coloring sheet format`
           }
         ];
 

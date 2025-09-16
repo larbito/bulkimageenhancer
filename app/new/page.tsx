@@ -162,33 +162,39 @@ export default function NewProjectPage() {
     setLoading(false);
   };
 
-  const generateAllPages = () => {
-    setStep(3);
-  };
-
-  const generatePageIdeas = async () => {
+  const generateAllPages = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/generate-page-ideas', {
+      console.log('Generating coloring pages for extracted ideas:', projectData.extractedIdeas);
+      
+      const response = await fetch('/api/generate-coloring-pages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          idea: projectData.idea,
-          pageCount: projectData.pageCount,
-          extractedIdeas: projectData.extractedIdeas
+          extractedIdeas: projectData.extractedIdeas,
+          mainTheme: projectData.enhancedPrompt,
+          originalIdea: projectData.originalPrompt
         })
       });
+      
+      if (!response.ok) {
+        throw new Error(`API call failed with status: ${response.status}`);
+      }
+      
       const data = await response.json();
-      setProjectData({...projectData, generatedPages: data.pageIdeas});
+      console.log('Generated coloring pages:', data);
+      
+      setProjectData({...projectData, generatedPages: data.pages || []});
       setStep(4);
     } catch (error) {
-      console.error('Error generating page ideas:', error);
+      console.error('Error generating coloring pages:', error);
       // For demo, generate sample page ideas
-      const samplePageIdeas = Array.from({length: projectData.pageCount}, (_, i) => ({
-        id: i + 1,
-        title: `Page ${i + 1}`,
-        description: `A coloring page featuring elements from your ${projectData.idea} theme`,
-        thumbnail: `https://images.unsplash.com/photo-${1500000000 + i}?w=300&h=300&fit=crop`
+      const samplePageIdeas = projectData.extractedIdeas.map((idea, i) => ({
+        id: idea.id,
+        title: idea.title,
+        description: idea.description,
+        thumbnail: `https://images.unsplash.com/photo-${1500000000 + i}?w=300&h=300&fit=crop`,
+        coloringPageUrl: `https://images.unsplash.com/photo-${1500000000 + i}?w=800&h=800&fit=crop`
       }));
       setProjectData({...projectData, generatedPages: samplePageIdeas});
       setStep(4);
@@ -435,7 +441,7 @@ export default function NewProjectPage() {
 
               <div className="text-center">
                 <Button 
-                  onClick={generatePageIdeas}
+                  onClick={generateAllPages}
                   disabled={loading}
                   size="lg"
                   className="gap-2"

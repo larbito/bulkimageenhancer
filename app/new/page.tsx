@@ -10,9 +10,8 @@ export default function NewProjectPage() {
   const [projectData, setProjectData] = useState({
     idea: '',
     pageCount: 12,
-    selectedStyle: null as any,
-    generatedStyles: [] as any[],
-    pageIdeas: [] as any[],
+    extractedIdeas: [] as any[],
+    generatedPages: [] as any[],
     enhancedPrompt: '',
     originalPrompt: ''
   });
@@ -71,12 +70,12 @@ export default function NewProjectPage() {
     }
   ];
 
-  const generateStyles = async () => {
+  const extractPageIdeas = async () => {
     setLoading(true);
     try {
-      console.log('Calling API to generate styles for:', projectData.idea);
+      console.log('Extracting page ideas from:', projectData.idea);
       
-      const response = await fetch('/api/generate-styles', {
+      const response = await fetch('/api/extract-page-ideas', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -92,21 +91,26 @@ export default function NewProjectPage() {
       }
       
       const data = await response.json();
-      console.log('Generated styles data:', data);
+      console.log('Extracted page ideas:', data);
       
-      // Always use the API response, even if it's fallback data
       setProjectData({
         ...projectData, 
-        generatedStyles: data.styles || [],
+        extractedIdeas: data.pageIdeas || [],
         enhancedPrompt: data.enhancedPrompt || projectData.idea,
         originalPrompt: data.originalPrompt || projectData.idea
       });
       setStep(2);
     } catch (error) {
-      console.error('Error generating styles:', error);
-      console.log('Using fallback sample styles due to error');
-      // Use sample styles as fallback
-      setProjectData({...projectData, generatedStyles: sampleStyles});
+      console.error('Error extracting page ideas:', error);
+      // Generate fallback page ideas
+      const fallbackIdeas = Array.from({length: projectData.pageCount}, (_, i) => ({
+        id: i + 1,
+        pageNumber: i + 1,
+        title: `Page ${i + 1}`,
+        description: `A coloring page related to: ${projectData.idea}`,
+        editable: true
+      }));
+      setProjectData({...projectData, extractedIdeas: fallbackIdeas});
       setStep(2);
     }
     setLoading(false);
@@ -212,10 +216,10 @@ export default function NewProjectPage() {
         <div className="flex justify-center mb-12">
           <div className="flex items-center space-x-4">
             {[
-              { num: 1, label: 'Idea & Pages' },
-              { num: 2, label: 'Choose Style' },
-              { num: 3, label: 'Generate Ideas' },
-              { num: 4, label: 'Review & Edit' }
+              { num: 1, label: 'Describe Idea' },
+              { num: 2, label: 'Edit Page Ideas' },
+              { num: 3, label: 'Generate Pages' },
+              { num: 4, label: 'Review & Download' }
             ].map((stepInfo, index) => (
               <div key={stepInfo.num} className="flex items-center">
                 <div className="text-center">
@@ -282,70 +286,82 @@ export default function NewProjectPage() {
           {step === 2 && (
             <div className="space-y-8">
               <div className="text-center">
-                <Palette className="w-16 h-16 text-primary mx-auto mb-4" />
-                <h2 className="text-3xl font-bold mb-2">Choose Your Style</h2>
-                <p className="text-muted-fg">5 coloring page samples in different styles - pick the one you like!</p>
+                <Type className="w-16 h-16 text-primary mx-auto mb-4" />
+                <h2 className="text-3xl font-bold mb-2">Edit Your Page Ideas</h2>
+                <p className="text-muted-fg">AI extracted {projectData.extractedIdeas.length} page ideas from your description. Edit any page before generating!</p>
               </div>
 
               {/* Enhanced Prompt Display */}
               {projectData.enhancedPrompt && projectData.enhancedPrompt !== projectData.originalPrompt && (
-                <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200 p-6">
+                <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-200 p-6">
                   <div className="text-center">
-                    <h3 className="text-lg font-semibold mb-3 text-blue-800">🧠 AI Enhanced Your Idea</h3>
+                    <h3 className="text-lg font-semibold mb-3 text-green-800">🧠 AI Understood Your Idea</h3>
                     <div className="space-y-3">
-                      <div className="bg-white/70 rounded-lg p-3 border border-blue-100">
-                        <p className="text-sm text-gray-600 mb-1">Your original idea:</p>
+                      <div className="bg-white/70 rounded-lg p-3 border border-green-100">
+                        <p className="text-sm text-gray-600 mb-1">Your description:</p>
                         <p className="text-gray-800 italic">"{projectData.originalPrompt}"</p>
                       </div>
-                      <div className="text-blue-600 font-medium">↓ Enhanced to ↓</div>
-                      <div className="bg-blue-100 rounded-lg p-3 border border-blue-200">
-                        <p className="text-sm text-blue-600 mb-1">Clean AI prompt:</p>
-                        <p className="text-blue-800 font-semibold">"{projectData.enhancedPrompt}"</p>
+                      <div className="text-green-600 font-medium">↓ Extracted theme ↓</div>
+                      <div className="bg-green-100 rounded-lg p-3 border border-green-200">
+                        <p className="text-sm text-green-600 mb-1">Main theme:</p>
+                        <p className="text-green-800 font-semibold">"{projectData.enhancedPrompt}"</p>
                       </div>
                     </div>
-                    <p className="text-xs text-blue-600 mt-3">This clean prompt helps generate better coloring pages!</p>
+                    <p className="text-xs text-green-600 mt-3">All pages will follow this consistent theme and character style!</p>
                   </div>
                 </Card>
               )}
 
+              {/* Page Ideas Grid */}
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {(projectData.generatedStyles.length > 0 ? projectData.generatedStyles : sampleStyles).map((style) => (
-                  <Card 
-                    key={style.id}
-                    className={`group cursor-pointer transition-all hover:scale-[1.02] ${
-                      projectData.selectedStyle?.id === style.id 
-                        ? 'ring-2 ring-primary bg-primary/5' 
-                        : 'hover:shadow-lg'
-                    }`}
-                    onClick={() => selectStyle(style)}
-                  >
-                    {/* Actual Coloring Page Sample */}
-                    <div className="aspect-square bg-white border rounded-lg mb-4 overflow-hidden">
-                      <img 
-                        src={style.coloringPageUrl || style.thumbnail} 
-                        alt={`${projectData.idea} in ${style.name}`}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                    </div>
-                    
-                    {/* Style Details */}
-                    <div className="p-4">
-                      <h3 className="font-semibold text-lg mb-2">{style.name}</h3>
-                      <p className="text-sm text-muted-fg mb-3">{style.description}</p>
+                {projectData.extractedIdeas.map((pageIdea, index) => (
+                  <Card key={pageIdea.id} className="p-4 hover:shadow-lg transition-all">
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <span className="bg-primary text-white px-3 py-1 rounded-full text-sm font-medium">
+                          Page {pageIdea.pageNumber}
+                        </span>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => {
+                            // Regenerate this specific page idea
+                            console.log('Regenerate page', pageIdea.id);
+                          }}
+                        >
+                          <RefreshCw className="w-4 h-4" />
+                        </Button>
+                      </div>
                       
-                      {/* Style Specifications */}
-                      <div className="space-y-1 text-xs">
-                        <div className="flex justify-between">
-                          <span className="text-muted-fg">Line Thickness:</span>
-                          <span className="font-medium">{style.lineThickness}</span>
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-sm font-medium mb-1">Page Title</label>
+                          <input
+                            type="text"
+                            value={pageIdea.title}
+                            onChange={(e) => {
+                              const updatedIdeas = projectData.extractedIdeas.map(p => 
+                                p.id === pageIdea.id ? {...p, title: e.target.value} : p
+                              );
+                              setProjectData({...projectData, extractedIdeas: updatedIdeas});
+                            }}
+                            className="w-full px-3 py-2 bg-muted rounded-lg border-0 focus:ring-2 focus:ring-primary focus:outline-none text-sm"
+                          />
                         </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-fg">Complexity:</span>
-                          <span className="font-medium">{style.complexity}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-fg">Character Style:</span>
-                          <span className="font-medium">{style.characterStyle}</span>
+                        
+                        <div>
+                          <label className="block text-sm font-medium mb-1">Description</label>
+                          <textarea
+                            value={pageIdea.description}
+                            onChange={(e) => {
+                              const updatedIdeas = projectData.extractedIdeas.map(p => 
+                                p.id === pageIdea.id ? {...p, description: e.target.value} : p
+                              );
+                              setProjectData({...projectData, extractedIdeas: updatedIdeas});
+                            }}
+                            rows={3}
+                            className="w-full px-3 py-2 bg-muted rounded-lg border-0 focus:ring-2 focus:ring-primary focus:outline-none text-sm resize-none"
+                          />
                         </div>
                       </div>
                     </div>
@@ -353,21 +369,43 @@ export default function NewProjectPage() {
                 ))}
               </div>
 
-              <div className="text-center space-y-4">
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-800">
-                  <strong>💡 How it works:</strong> Each image above is an actual coloring page sample of your idea "{projectData.idea}" 
-                  rendered in different artistic styles. Choose the line thickness, complexity, and character style you prefer!
-                </div>
-                
+              {/* Add/Remove Pages */}
+              <div className="flex justify-center space-x-4">
                 <Button 
                   variant="ghost" 
-                  onClick={regenerateStyles}
-                  disabled={loading}
-                  className="gap-2"
+                  onClick={() => {
+                    const newPage = {
+                      id: projectData.extractedIdeas.length + 1,
+                      pageNumber: projectData.extractedIdeas.length + 1,
+                      title: `Page ${projectData.extractedIdeas.length + 1}`,
+                      description: `Another page about ${projectData.enhancedPrompt || projectData.idea}`,
+                      editable: true
+                    };
+                    setProjectData({
+                      ...projectData, 
+                      extractedIdeas: [...projectData.extractedIdeas, newPage],
+                      pageCount: projectData.extractedIdeas.length + 1
+                    });
+                  }}
                 >
-                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
-                  {loading ? 'Generating New Samples...' : 'Generate 5 New Style Samples'}
+                  + Add Page
                 </Button>
+                
+                {projectData.extractedIdeas.length > 1 && (
+                  <Button 
+                    variant="ghost" 
+                    onClick={() => {
+                      const updatedIdeas = projectData.extractedIdeas.slice(0, -1);
+                      setProjectData({
+                        ...projectData, 
+                        extractedIdeas: updatedIdeas,
+                        pageCount: updatedIdeas.length
+                      });
+                    }}
+                  >
+                    - Remove Page
+                  </Button>
+                )}
               </div>
             </div>
           )}
@@ -503,28 +541,33 @@ export default function NewProjectPage() {
 
             {step === 1 && (
               <Button 
-                onClick={generateStyles}
+                onClick={extractPageIdeas}
                 disabled={!projectData.idea || loading}
                 className="gap-2"
               >
                 {loading ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    Generating...
+                    Extracting Ideas...
                   </>
                 ) : (
                   <>
                     <Sparkles className="w-4 h-4" />
-                    Generate Styles
+                    Extract Page Ideas
                   </>
                 )}
               </Button>
             )}
 
             {step === 2 && (
-              <div className="text-sm text-muted-fg">
-                Select a style to continue
-              </div>
+              <Button 
+                onClick={() => setStep(3)}
+                disabled={projectData.extractedIdeas.length === 0}
+                className="gap-2"
+              >
+                <Wand2 className="w-4 h-4" />
+                Generate All Pages ({projectData.extractedIdeas.length} pages)
+              </Button>
             )}
 
             {step === 3 && (

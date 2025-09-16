@@ -41,23 +41,40 @@ export async function POST(req: NextRequest) {
         const pagePromises = extractedIdeas.map(async (pageIdea: any) => {
           console.log(`🎨 Generating coloring page: ${pageIdea.title}`);
           
-          // Create specific prompt for this page - MUCH SIMPLER
-          const prompt = `VERY SIMPLE kids coloring book page: ${pageIdea.description}
+          // Create specific prompt using EXACT professional specifications
+          const prompt = `Professional coloring book page: ${pageIdea.description}
 
-CRITICAL - MAKE IT EXTREMELY SIMPLE:
-- THICK black lines only (like crayola coloring books)
-- PURE WHITE background (no gray, no shading)
-- NO filled black areas AT ALL - everything must be outline only
-- MINIMAL details - only 3-4 simple background elements maximum
-- Large simple shapes that kids can easily color
-- Same cute ${mainTheme} character with consistent round face and big eyes
-- Clean, uncluttered composition
-- THICK outlines like children's coloring books
-- Simple geometric shapes for backgrounds
-- Easy for 3-year-olds to color
-- Style: classic children's coloring book
-- NO complex patterns, NO detailed textures
-- Keep it as simple as possible`;
+PAGE SETUP:
+- 2550×3300 px portrait at 300 dpi
+- Pure white background
+- No frame, no text, no watermark
+- Safe margin 150 px on all sides
+
+LINE SYSTEM:
+- Uniform black strokes, no fills, no shading, no gradients
+- Round stroke caps and round joins
+- 18 px main character silhouette
+- 14 px secondary objects and furniture
+- 10–12 px inner details and patterns
+- 8–10 px ground tiles, water ripples, motion lines
+- Only pupils filled solid black
+
+${mainTheme.toUpperCase()} CHARACTER MODEL:
+- Head big and round, about 55% of character height
+- Horn centered, three curved rings, slight forward tilt, base about 20% of head width
+- Ears round with a single inner-ear line
+- Eye patches outlined only, large ovals, no solid fill
+- Pupils small, solid black, one round highlight each
+- Nose tiny rounded triangle
+- Mouth small U with a short center line
+- Cheeks two outlined circles, no fill
+- Body short pear shape, stubby arms, three toe nubs per foot
+- Tiny tail tuft optional
+- Apron for cooking or cleaning scenes, scarf for winter scenes
+
+CONSISTENCY: Use EXACT same character design in every page`;
+          
+          console.log(`🎨 Generating PROFESSIONAL page ${pageIdea.pageNumber}: ${pageIdea.title}`);
           
           console.log(`🎨 Generating SIMPLE page ${pageIdea.pageNumber}: ${pageIdea.title}`);
           

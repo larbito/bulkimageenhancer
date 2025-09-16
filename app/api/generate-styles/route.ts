@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from 'openai';
 
-const WORKER_API_BASE = process.env.WORKER_API_BASE || "";
+const WORKER_API_BASE = process.env.WORKER_API_BASE || "https://web-production-0cd9.up.railway.app";
 
 // Initialize OpenAI only if API key is available
 const openai = process.env.OPENAI_API_KEY ? new OpenAI({
@@ -117,6 +117,8 @@ export async function POST(req: NextRequest) {
     }
 
     // If this is Vercel (no OpenAI key), call Railway API
+    console.log(`🔍 Environment check: OPENAI_API_KEY=${process.env.OPENAI_API_KEY ? 'SET' : 'NOT_SET'}, WORKER_API_BASE=${WORKER_API_BASE}`);
+    
     if (WORKER_API_BASE && !process.env.OPENAI_API_KEY) {
       try {
         console.log(`📡 VERCEL: Calling Railway API to generate styles for: ${idea}`);

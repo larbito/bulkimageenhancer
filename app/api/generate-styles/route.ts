@@ -81,6 +81,10 @@ export async function POST(req: NextRequest) {
             style: "natural"
           });
           
+          if (!response.data || !response.data[0] || !response.data[0].url) {
+            throw new Error(`Failed to generate image for style ${style.name}`);
+          }
+          
           return {
             ...style,
             coloringPageUrl: response.data[0].url,

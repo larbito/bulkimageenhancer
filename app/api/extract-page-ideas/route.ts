@@ -39,19 +39,32 @@ export async function POST(req: NextRequest) {
         const mainTheme = themeExtraction.choices[0]?.message?.content?.trim() || "character";
         console.log(`✨ Main theme: "${mainTheme}"`);
 
-        // Step 2: Extract specific page ideas
-        console.log(`📝 Extracting ${pageCount} specific page ideas...`);
+        // Step 2: Extract specific page ideas with rich details
+        console.log(`📝 Extracting ${pageCount} detailed page ideas...`);
         const pageExtraction = await openai.chat.completions.create({
-          model: "gpt-3.5-turbo",
+          model: "gpt-4",
           messages: [{
             role: "system",
-            content: `You are extracting specific coloring page scenes from a user's description. The user wants ${pageCount} pages. Look for SPECIFIC scenes they mentioned (like "unicorn playing with princess in castle", "unicorn preparing pancakes"). If they mention specific scenes, use those EXACTLY. If they don't provide enough specific scenes, create similar detailed scenes that fit their theme. Return ONLY a JSON array with this format: [{"title": "Unicorn playing with princess in castle", "description": "A unicorn and princess playing together in a magical castle courtyard"}, {"title": "Unicorn preparing pancakes", "description": "A unicorn in a kitchen making pancakes for breakfast"}]. Be very specific about what's happening in each scene.`
+            content: `You are creating detailed coloring page descriptions for a professional coloring book. The user wants ${pageCount} pages about "${mainTheme}". 
+
+IMPORTANT: Create RICH, DETAILED descriptions with lots of background elements, just like this example:
+"Pandacorn flips pancakes on a pan. Include stove, stack on a plate, fruit bowl, fridge with magnets, wall clock, window with sun, hanging utensils, checkered floor."
+
+For each page:
+1. Start with the main action/scene
+2. Add 6-8 specific background elements 
+3. Include furniture, decorations, nature elements, small details
+4. Make it rich enough for a professional coloring book
+
+Return ONLY a JSON array: [{"title": "Short title", "description": "Main action. Include element1, element2, element3, element4, element5, element6, element7."}]
+
+Create ${pageCount} different daily life scenes for ${mainTheme} with rich backgrounds and details.`
           }, {
             role: "user", 
-            content: `Extract ${pageCount} specific coloring page scenes from: "${idea}"`
+            content: `Create ${pageCount} detailed coloring page scenes for: "${idea}". Each page should have rich backgrounds with 6-8 specific elements like furniture, decorations, nature items, etc.`
           }],
-          max_tokens: 1000,
-          temperature: 0.5
+          max_tokens: 2000,
+          temperature: 0.7
         });
         
         let extractedPages = [];

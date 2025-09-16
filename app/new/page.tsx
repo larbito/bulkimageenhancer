@@ -12,7 +12,9 @@ export default function NewProjectPage() {
     pageCount: 12,
     selectedStyle: null as any,
     generatedStyles: [] as any[],
-    pageIdeas: [] as any[]
+    pageIdeas: [] as any[],
+    enhancedPrompt: '',
+    originalPrompt: ''
   });
 
   // Sample generated styles (these would come from API)
@@ -93,7 +95,12 @@ export default function NewProjectPage() {
       console.log('Generated styles data:', data);
       
       // Always use the API response, even if it's fallback data
-      setProjectData({...projectData, generatedStyles: data.styles || []});
+      setProjectData({
+        ...projectData, 
+        generatedStyles: data.styles || [],
+        enhancedPrompt: data.enhancedPrompt || projectData.idea,
+        originalPrompt: data.originalPrompt || projectData.idea
+      });
       setStep(2);
     } catch (error) {
       console.error('Error generating styles:', error);
@@ -128,7 +135,12 @@ export default function NewProjectPage() {
       console.log('Regenerated styles data:', data);
       
       // Always use the API response
-      setProjectData({...projectData, generatedStyles: data.styles || []});
+      setProjectData({
+        ...projectData, 
+        generatedStyles: data.styles || [],
+        enhancedPrompt: data.enhancedPrompt || projectData.idea,
+        originalPrompt: data.originalPrompt || projectData.idea
+      });
     } catch (error) {
       console.error('Error regenerating styles:', error);
       // Keep existing styles or use samples if none exist
@@ -272,8 +284,29 @@ export default function NewProjectPage() {
               <div className="text-center">
                 <Palette className="w-16 h-16 text-primary mx-auto mb-4" />
                 <h2 className="text-3xl font-bold mb-2">Choose Your Style</h2>
-                <p className="text-muted-fg">5 coloring page samples of "{projectData.idea}" in different styles - pick the one you like!</p>
+                <p className="text-muted-fg">5 coloring page samples in different styles - pick the one you like!</p>
               </div>
+
+              {/* Enhanced Prompt Display */}
+              {projectData.enhancedPrompt && projectData.enhancedPrompt !== projectData.originalPrompt && (
+                <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200 p-6">
+                  <div className="text-center">
+                    <h3 className="text-lg font-semibold mb-3 text-blue-800">🧠 AI Enhanced Your Idea</h3>
+                    <div className="space-y-3">
+                      <div className="bg-white/70 rounded-lg p-3 border border-blue-100">
+                        <p className="text-sm text-gray-600 mb-1">Your original idea:</p>
+                        <p className="text-gray-800 italic">"{projectData.originalPrompt}"</p>
+                      </div>
+                      <div className="text-blue-600 font-medium">↓ Enhanced to ↓</div>
+                      <div className="bg-blue-100 rounded-lg p-3 border border-blue-200">
+                        <p className="text-sm text-blue-600 mb-1">Clean AI prompt:</p>
+                        <p className="text-blue-800 font-semibold">"{projectData.enhancedPrompt}"</p>
+                      </div>
+                    </div>
+                    <p className="text-xs text-blue-600 mt-3">This clean prompt helps generate better coloring pages!</p>
+                  </div>
+                </Card>
+              )}
 
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {(projectData.generatedStyles.length > 0 ? projectData.generatedStyles : sampleStyles).map((style) => (

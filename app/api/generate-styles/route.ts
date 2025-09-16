@@ -125,7 +125,9 @@ export async function POST(req: NextRequest) {
             pageCount: pageCount,
             generated: true,
             aiGenerated: true
-          }))
+          })),
+          enhancedPrompt: enhancedIdea,
+          originalPrompt: idea
         });
 
       } catch (openaiError) {

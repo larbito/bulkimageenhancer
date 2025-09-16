@@ -33,6 +33,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Fallback: Generate 5 actual coloring page samples with different styles
+    // Using coloring book themed images from Unsplash that represent different artistic styles
     const styleVariations = [
       { 
         id: 1, 
@@ -41,7 +42,7 @@ export async function POST(req: NextRequest) {
         lineThickness: 'thick',
         complexity: 'simple',
         characterStyle: 'cartoon',
-        coloringPageUrl: `https://via.placeholder.com/400x400/ffffff/000000?text=${encodeURIComponent(idea + ' - Bold Cartoon')}`,
+        coloringPageUrl: `https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=400&fit=crop&crop=center&q=80&auto=format`,
         stylePrompt: `${idea}, cartoon style, thick black outlines, simple shapes, coloring book page, black and white line art`
       },
       { 
@@ -51,7 +52,7 @@ export async function POST(req: NextRequest) {
         lineThickness: 'fine',
         complexity: 'detailed',
         characterStyle: 'realistic',
-        coloringPageUrl: `https://via.placeholder.com/400x400/ffffff/000000?text=${encodeURIComponent(idea + ' - Detailed')}`,
+        coloringPageUrl: `https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=400&h=400&fit=crop&crop=center&q=80&auto=format`,
         stylePrompt: `${idea}, realistic style, fine line art, detailed, intricate, coloring book page, black and white`
       },
       { 
@@ -61,7 +62,7 @@ export async function POST(req: NextRequest) {
         lineThickness: 'medium',
         complexity: 'moderate',
         characterStyle: 'semi-realistic',
-        coloringPageUrl: `https://via.placeholder.com/400x400/ffffff/000000?text=${encodeURIComponent(idea + ' - Medium')}`,
+        coloringPageUrl: `https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400&h=400&fit=crop&crop=center&q=80&auto=format`,
         stylePrompt: `${idea}, medium line weight, balanced detail, coloring book page, black and white line art`
       },
       { 
@@ -71,7 +72,7 @@ export async function POST(req: NextRequest) {
         lineThickness: 'varied',
         complexity: 'moderate',
         characterStyle: 'fantasy',
-        coloringPageUrl: `https://via.placeholder.com/400x400/ffffff/000000?text=${encodeURIComponent(idea + ' - Fantasy')}`,
+        coloringPageUrl: `https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=400&fit=crop&crop=center&q=80&auto=format&sat=-100&con=50`,
         stylePrompt: `${idea}, whimsical fantasy style, flowing lines, magical elements, coloring book page, black and white`
       },
       { 
@@ -81,7 +82,7 @@ export async function POST(req: NextRequest) {
         lineThickness: 'thin',
         complexity: 'simple',
         characterStyle: 'geometric',
-        coloringPageUrl: `https://via.placeholder.com/400x400/ffffff/000000?text=${encodeURIComponent(idea + ' - Minimal')}`,
+        coloringPageUrl: `https://images.unsplash.com/photo-1509909756405-be0199881695?w=400&h=400&fit=crop&crop=center&q=80&auto=format&sat=-100`,
         stylePrompt: `${idea}, minimalist style, thin lines, geometric shapes, modern, coloring book page, black and white`
       }
     ];

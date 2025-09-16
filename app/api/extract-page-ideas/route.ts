@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
         }
 
         // Format for frontend
-        const formattedPages = extractedPages.slice(0, pageCount).map((page, index) => ({
+        const formattedPages = extractedPages.slice(0, pageCount).map((page: any, index: number) => ({
           id: index + 1,
           pageNumber: index + 1,
           title: page.title || `Page ${index + 1}`,

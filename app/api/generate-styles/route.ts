@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
+import OpenAI from 'openai';
 
-const WORKER_API_BASE = process.env.WORKER_API_BASE || "https://web-production-0cd9.up.railway.app";
+const WORKER_API_BASE = process.env.WORKER_API_BASE || "";
+
+// Initialize OpenAI only if API key is available
+const openai = process.env.OPENAI_API_KEY ? new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+}) : null;
 
 export async function POST(req: NextRequest) {
   try {
@@ -10,10 +16,110 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Idea is required" }, { status: 400 });
     }
 
-    // Call Railway API (where OpenAI is configured)
-    if (WORKER_API_BASE) {
+    // If this is Railway (has OpenAI key), generate directly with OpenAI
+    if (openai && process.env.OPENAI_API_KEY) {
       try {
-        console.log(`Calling Railway API to generate styles for: ${idea}`);
+        console.log(`🎨 RAILWAY: Generating 5 coloring page styles with OpenAI for: ${idea}`);
+        
+        // Define the 5 different styles we want to generate
+        const styleDefinitions = [
+          {
+            id: 1,
+            name: 'Bold Cartoon Style',
+            description: 'Thick lines, simple shapes, kid-friendly',
+            lineThickness: 'thick',
+            complexity: 'simple',
+            characterStyle: 'cartoon',
+            prompt: `${idea}, cartoon style coloring page, thick black outlines, simple shapes, bold lines, kid-friendly design, black and white line art only, no shading, clean white background`
+          },
+          {
+            id: 2,
+            name: 'Detailed Realistic',
+            description: 'Fine lines, intricate details, realistic proportions',
+            lineThickness: 'fine',
+            complexity: 'detailed',
+            characterStyle: 'realistic',
+            prompt: `${idea}, realistic detailed coloring page, fine thin lines, intricate details, realistic proportions, complex line art, black and white only, no shading, clean white background`
+          },
+          {
+            id: 3,
+            name: 'Medium Line Art',
+            description: 'Balanced lines, moderate detail, versatile',
+            lineThickness: 'medium',
+            complexity: 'moderate',
+            characterStyle: 'semi-realistic',
+            prompt: `${idea}, medium line weight coloring page, balanced detail level, moderate complexity, clean line art, black and white only, no shading, clean white background`
+          },
+          {
+            id: 4,
+            name: 'Whimsical Fantasy',
+            description: 'Flowing lines, magical elements, dreamy style',
+            lineThickness: 'varied',
+            complexity: 'moderate',
+            characterStyle: 'fantasy',
+            prompt: `${idea}, whimsical fantasy coloring page, flowing curved lines, magical elements, dreamy artistic style, varied line weights, black and white line art only, no shading, clean white background`
+          },
+          {
+            id: 5,
+            name: 'Minimalist Clean',
+            description: 'Very thin lines, geometric, modern style',
+            lineThickness: 'thin',
+            complexity: 'simple',
+            characterStyle: 'geometric',
+            prompt: `${idea}, minimalist coloring page, very thin clean lines, geometric shapes, modern simple design, minimal detail, black and white line art only, no shading, clean white background`
+          }
+        ];
+
+        // Generate all 5 styles in parallel
+        const imagePromises = styleDefinitions.map(async (style) => {
+          console.log(`🎨 Generating ${style.name}...`);
+          
+          const response = await openai.images.generate({
+            model: "dall-e-3",
+            prompt: style.prompt,
+            n: 1,
+            size: "1024x1024",
+            quality: "standard",
+            style: "natural"
+          });
+          
+          if (!response.data || !response.data[0] || !response.data[0].url) {
+            throw new Error(`Failed to generate image for style ${style.name}`);
+          }
+          
+          console.log(`✅ Generated ${style.name}`);
+          
+          return {
+            ...style,
+            coloringPageUrl: response.data[0].url,
+            stylePrompt: style.prompt
+          };
+        });
+
+        const generatedStyles = await Promise.all(imagePromises);
+        
+        console.log(`🎉 Successfully generated ${generatedStyles.length} coloring page styles with OpenAI`);
+        
+        return NextResponse.json({ 
+          styles: generatedStyles.map(style => ({
+            ...style,
+            basedOnIdea: idea,
+            pageCount: pageCount,
+            generated: true,
+            aiGenerated: true
+          }))
+        });
+
+      } catch (openaiError) {
+        console.error('❌ OpenAI generation failed:', openaiError);
+        // Fall through to fallback
+      }
+    }
+
+    // If this is Vercel (no OpenAI key), call Railway API
+    if (WORKER_API_BASE && !process.env.OPENAI_API_KEY) {
+      try {
+        console.log(`📡 VERCEL: Calling Railway API to generate styles for: ${idea}`);
         console.log(`Railway URL: ${WORKER_API_BASE}/api/generate-styles`);
         
         const response = await fetch(`${WORKER_API_BASE}/api/generate-styles`, {
@@ -30,14 +136,14 @@ export async function POST(req: NextRequest) {
         
         if (response.ok) {
           const data = await response.json();
-          console.log('Railway API returned styles successfully');
+          console.log('✅ Railway API returned styles successfully');
           return NextResponse.json(data);
         } else {
           const errorText = await response.text();
-          console.error('Railway API failed:', response.status, errorText);
+          console.error('❌ Railway API failed:', response.status, errorText);
         }
       } catch (workerError) {
-        console.error('Railway API call failed:', workerError);
+        console.error('❌ Railway API call failed:', workerError);
       }
     }
 

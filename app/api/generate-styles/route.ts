@@ -21,6 +21,24 @@ export async function POST(req: NextRequest) {
       try {
         console.log(`🎨 RAILWAY: Generating 5 coloring page styles with OpenAI for: ${idea}`);
         
+        // Step 1: Enhance the user prompt to extract key elements
+        console.log('🧠 Enhancing user prompt...');
+        const promptEnhancement = await openai.chat.completions.create({
+          model: "gpt-3.5-turbo",
+          messages: [{
+            role: "system",
+            content: "You are a prompt enhancer for coloring book generation. Extract the main subject/character from the user's description and create a clean, simple description suitable for coloring pages. Return only the main subject and theme, nothing else. Example: User says 'I want a coloring book about unicorn life with unicorns playing with princesses and making pancakes' -> You return 'unicorn adventures'"
+          }, {
+            role: "user", 
+            content: `Extract the main subject for coloring pages from this user description: "${idea}"`
+          }],
+          max_tokens: 50,
+          temperature: 0.3
+        });
+        
+        const enhancedIdea = promptEnhancement.choices[0]?.message?.content?.trim() || idea;
+        console.log(`✨ Enhanced idea: "${enhancedIdea}" (from original: "${idea.substring(0, 50)}...")`);
+        
         // Define the 5 different styles we want to generate
         const styleDefinitions = [
           {
@@ -30,7 +48,7 @@ export async function POST(req: NextRequest) {
             lineThickness: 'thick',
             complexity: 'simple',
             characterStyle: 'cartoon',
-            prompt: `Coloring book page of ${idea}, cartoon style, thick black outline only, simple line art, no filled black areas, no shading, no solid black shapes, only outlines to color, white background, single A4 page, coloring sheet format`
+            prompt: `Coloring book page of ${enhancedIdea}, cartoon style, thick black outline only, simple line art, no filled black areas, no shading, no solid black shapes, only outlines to color, white background, single A4 page, coloring sheet format`
           },
           {
             id: 2,
@@ -39,7 +57,7 @@ export async function POST(req: NextRequest) {
             lineThickness: 'fine',
             complexity: 'detailed',
             characterStyle: 'realistic',
-            prompt: `Coloring book page of ${idea}, realistic style, fine black outline only, detailed line art, no filled black areas, no shading, no solid black shapes, only outlines to color, white background, single A4 page, coloring sheet format`
+            prompt: `Coloring book page of ${enhancedIdea}, realistic style, fine black outline only, detailed line art, no filled black areas, no shading, no solid black shapes, only outlines to color, white background, single A4 page, coloring sheet format`
           },
           {
             id: 3,
@@ -48,7 +66,7 @@ export async function POST(req: NextRequest) {
             lineThickness: 'medium',
             complexity: 'moderate',
             characterStyle: 'semi-realistic',
-            prompt: `Coloring book page of ${idea}, medium black outline only, balanced detail, moderate complexity, no filled black areas, no shading, no solid black shapes, only outlines to color, white background, single A4 page, coloring sheet format`
+            prompt: `Coloring book page of ${enhancedIdea}, medium black outline only, balanced detail, moderate complexity, no filled black areas, no shading, no solid black shapes, only outlines to color, white background, single A4 page, coloring sheet format`
           },
           {
             id: 4,
@@ -57,7 +75,7 @@ export async function POST(req: NextRequest) {
             lineThickness: 'varied',
             complexity: 'moderate',
             characterStyle: 'fantasy',
-            prompt: `Coloring book page of ${idea}, whimsical fantasy style, flowing black outline only, magical elements, no filled black areas, no shading, no solid black shapes, only outlines to color, white background, single A4 page, coloring sheet format`
+            prompt: `Coloring book page of ${enhancedIdea}, whimsical fantasy style, flowing black outline only, magical elements, no filled black areas, no shading, no solid black shapes, only outlines to color, white background, single A4 page, coloring sheet format`
           },
           {
             id: 5,
@@ -66,7 +84,7 @@ export async function POST(req: NextRequest) {
             lineThickness: 'thin',
             complexity: 'simple',
             characterStyle: 'geometric',
-            prompt: `Coloring book page of ${idea}, minimalist style, thin black outline only, geometric shapes, simple design, no filled black areas, no shading, no solid black shapes, only outlines to color, white background, single A4 page, coloring sheet format`
+            prompt: `Coloring book page of ${enhancedIdea}, minimalist style, thin black outline only, geometric shapes, simple design, no filled black areas, no shading, no solid black shapes, only outlines to color, white background, single A4 page, coloring sheet format`
           }
         ];
 

@@ -45,13 +45,13 @@ export async function POST(req: NextRequest) {
           model: "gpt-3.5-turbo",
           messages: [{
             role: "system",
-            content: `You are extracting specific coloring page ideas from a user's description. The user wants ${pageCount} pages. Extract specific scenes/activities mentioned in their description. If they don't provide enough specific ideas, create similar ones that fit their theme. Return a JSON array of objects with: {"pageNumber": 1, "title": "Short Title", "description": "Detailed description of what to draw"}. Focus on single scenes that would work well as coloring pages.`
+            content: `You are extracting specific coloring page scenes from a user's description. The user wants ${pageCount} pages. Look for SPECIFIC scenes they mentioned (like "unicorn playing with princess in castle", "unicorn preparing pancakes"). If they mention specific scenes, use those EXACTLY. If they don't provide enough specific scenes, create similar detailed scenes that fit their theme. Return ONLY a JSON array with this format: [{"title": "Unicorn playing with princess in castle", "description": "A unicorn and princess playing together in a magical castle courtyard"}, {"title": "Unicorn preparing pancakes", "description": "A unicorn in a kitchen making pancakes for breakfast"}]. Be very specific about what's happening in each scene.`
           }, {
             role: "user", 
-            content: `Extract ${pageCount} specific coloring page ideas from this description: "${idea}"`
+            content: `Extract ${pageCount} specific coloring page scenes from: "${idea}"`
           }],
-          max_tokens: 800,
-          temperature: 0.7
+          max_tokens: 1000,
+          temperature: 0.5
         });
         
         let extractedPages = [];
@@ -63,12 +63,27 @@ export async function POST(req: NextRequest) {
           extractedPages = [];
         }
 
-        // Ensure we have the right number of pages
+        // Ensure we have the right number of pages with specific scenes
+        const additionalScenes = [
+          `${mainTheme} playing in a garden`,
+          `${mainTheme} having breakfast`,
+          `${mainTheme} meeting friends`,
+          `${mainTheme} going on adventure`,
+          `${mainTheme} reading a book`,
+          `${mainTheme} playing with toys`,
+          `${mainTheme} in a magical forest`,
+          `${mainTheme} celebrating birthday`,
+          `${mainTheme} learning something new`,
+          `${mainTheme} helping others`,
+          `${mainTheme} exploring new places`,
+          `${mainTheme} having fun outdoors`
+        ];
+
         while (extractedPages.length < pageCount) {
+          const sceneIndex = extractedPages.length % additionalScenes.length;
           extractedPages.push({
-            pageNumber: extractedPages.length + 1,
-            title: `${mainTheme} Adventure ${extractedPages.length + 1}`,
-            description: `A coloring page showing ${mainTheme} in an interesting scene or activity`
+            title: additionalScenes[sceneIndex],
+            description: `A detailed coloring page showing ${additionalScenes[sceneIndex]} with clear outlines and fun details`
           });
         }
 

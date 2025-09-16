@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
+import OpenAI from 'openai';
 
 const WORKER_API_BASE = process.env.WORKER_API_BASE || "";
+
+// Initialize OpenAI only if API key is available
+const openai = process.env.OPENAI_API_KEY ? new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+}) : null;
 
 export async function POST(req: NextRequest) {
   try {
@@ -10,7 +16,77 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Idea and style are required" }, { status: 400 });
     }
 
-    // Try to call worker API if configured
+    // Try to generate actual coloring pages with OpenAI first
+    if (openai && process.env.OPENAI_API_KEY) {
+      try {
+        console.log(`Generating ${pageCount} coloring pages for: ${idea} in ${style.name} style`);
+        
+        // Generate page ideas based on the selected style
+        const pageThemes = [
+          'Main character introduction',
+          'Adventure begins',
+          'Meeting new friends', 
+          'Facing challenges',
+          'Discovering magic',
+          'Working together',
+          'Overcoming obstacles',
+          'Learning lessons',
+          'Celebration scene',
+          'Journey continues',
+          'Special moments',
+          'Happy ending'
+        ];
+
+        // Generate actual coloring pages for each theme
+        const pagePromises = Array.from({length: pageCount}, async (_, i) => {
+          const pageNumber = i + 1;
+          const themeIndex = i % pageThemes.length;
+          const baseTheme = pageThemes[themeIndex];
+          
+          const prompt = `${baseTheme} featuring ${idea}, ${style.stylePrompt}, page ${pageNumber} of coloring book, black and white line art only, no shading, clean white background`;
+          
+          const response = await openai.images.generate({
+            model: "dall-e-3",
+            prompt: prompt,
+            n: 1,
+            size: "1024x1024",
+            quality: "standard",
+            style: "natural"
+          });
+          
+          return {
+            id: pageNumber,
+            title: `${idea} - Page ${pageNumber}`,
+            description: `${baseTheme} featuring ${idea} in ${style.name} style`,
+            thumbnail: response.data[0].url,
+            coloringPageUrl: response.data[0].url,
+            prompt: prompt,
+            styleConsistency: style.id,
+            pageNumber: pageNumber,
+            aiGenerated: true
+          };
+        });
+
+        const generatedPages = await Promise.all(pagePromises);
+        
+        console.log(`Successfully generated ${generatedPages.length} coloring pages`);
+        
+        return NextResponse.json({ 
+          pageIdeas: generatedPages,
+          style: style,
+          totalPages: pageCount,
+          basedOnIdea: idea,
+          generated: true,
+          aiGenerated: true
+        });
+
+      } catch (openaiError) {
+        console.error('OpenAI page generation failed:', openaiError);
+        // Fall through to worker API or fallback
+      }
+    }
+
+    // Try to call worker API if OpenAI failed or not configured
     if (WORKER_API_BASE) {
       try {
         const response = await fetch(`${WORKER_API_BASE}/api/generate-page-ideas`, {

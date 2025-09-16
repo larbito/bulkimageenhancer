@@ -13,11 +13,13 @@ Visit `http://localhost:3000` and start creating coloring books with sample imag
 
 ### Environment Configuration
 
-Create `.env.local` for full functionality:
+Create `.env.local` for AI generation:
 
 ```bash
-# Worker API for AI image generation (optional)
-# Without this, app runs in demo mode with sample images
+# OpenAI API Key for real coloring page generation
+OPENAI_API_KEY=sk-your-openai-api-key-here
+
+# Worker API for AI image generation (optional alternative)
 WORKER_API_BASE=
 
 # Future authentication setup
@@ -28,20 +30,30 @@ NEXTAUTH_URL=http://localhost:3000
 DATABASE_URL=
 ```
 
+### Get OpenAI API Key:
+1. Go to [OpenAI Platform](https://platform.openai.com/api-keys)
+2. Create a new API key
+3. Add it to your `.env.local` file as `OPENAI_API_KEY=sk-...`
+4. Restart your dev server
+
 ### Demo vs Production Mode
 
-**Demo Mode (current):**
+**Demo Mode (no API keys):**
 - ✅ Complete workflow testing
 - ✅ Style selection with sample images
 - ✅ Page idea generation
 - ✅ Simulated rendering process
-- ✅ Perfect for development & testing
+
+**AI Mode (with OPENAI_API_KEY):**
+- 🎨 **Real AI-generated coloring pages using DALL-E 3**
+- 🖼️ **5 different style variations of user's exact idea**
+- ✨ **Actual coloring book pages with different line thicknesses**
+- 🎯 **Customized to user's specific concept**
 
 **Production Mode (with WORKER_API_BASE):**
-- 🎨 Real AI-generated coloring pages
-- 🖼️ Custom style samples based on user ideas  
-- ⚡ Live rendering with actual AI models
-- 📦 High-quality downloadable files
+- ⚡ Custom AI pipeline integration
+- 📦 High-volume processing
+- 🔧 Advanced customization options
 
 ### Setting up AI Generation
 

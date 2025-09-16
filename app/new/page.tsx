@@ -141,15 +141,22 @@ export default function NewProjectPage() {
       // Always use the API response
       setProjectData({
         ...projectData, 
-        generatedStyles: data.styles || [],
+        extractedIdeas: data.pageIdeas || [],
         enhancedPrompt: data.enhancedPrompt || projectData.idea,
         originalPrompt: data.originalPrompt || projectData.idea
       });
     } catch (error) {
       console.error('Error regenerating styles:', error);
-      // Keep existing styles or use samples if none exist
-      if (projectData.generatedStyles.length === 0) {
-        setProjectData({...projectData, generatedStyles: sampleStyles});
+      // Keep existing ideas or use samples if none exist
+      if (projectData.extractedIdeas.length === 0) {
+        const fallbackIdeas = Array.from({length: projectData.pageCount}, (_, i) => ({
+          id: i + 1,
+          pageNumber: i + 1,
+          title: `Page ${i + 1}`,
+          description: `A coloring page related to: ${projectData.idea}`,
+          editable: true
+        }));
+        setProjectData({...projectData, extractedIdeas: fallbackIdeas});
       }
     }
     setLoading(false);

@@ -41,34 +41,25 @@ export async function POST(req: NextRequest) {
         const pagePromises = extractedIdeas.map(async (pageIdea: any) => {
           console.log(`🎨 Generating coloring page: ${pageIdea.title}`);
           
-          // Create specific prompt for this page with character consistency
-          const prompt = `Simple kids coloring book page: ${pageIdea.description}
+          // Create specific prompt for this page - MUCH SIMPLER
+          const prompt = `VERY SIMPLE kids coloring book page: ${pageIdea.description}
 
-EXACT CHARACTER REQUIREMENTS:
-- Use the EXACT same ${mainTheme} character design from previous pages
-- Round cute face with big friendly eyes
-- Simple body proportions perfect for kids
-- Same character appearance, size, and style every time
-
-DESIGN REQUIREMENTS:
-- Thick black outlines only (like children's coloring books)
-- Very simple, not complicated
-- No filled black areas anywhere
-- No shading, no gradients, no complex details
-- Clean white background
-- Single focused scene (not busy or cluttered)
-- Easy for 4-8 year olds to color
-- Professional kids coloring book quality
-
-LAYOUT:
-- Single A4 page format
-- One main scene with simple background elements
-- Character as the main focus
-- Simple, organized composition`;
+CRITICAL - MAKE IT EXTREMELY SIMPLE:
+- THICK black lines only (like crayola coloring books)
+- PURE WHITE background (no gray, no shading)
+- NO filled black areas AT ALL - everything must be outline only
+- MINIMAL details - only 3-4 simple background elements maximum
+- Large simple shapes that kids can easily color
+- Same cute ${mainTheme} character with consistent round face and big eyes
+- Clean, uncluttered composition
+- THICK outlines like children's coloring books
+- Simple geometric shapes for backgrounds
+- Easy for 3-year-olds to color
+- Style: classic children's coloring book
+- NO complex patterns, NO detailed textures
+- Keep it as simple as possible`;
           
-          console.log(`🎨 Generating page ${pageIdea.pageNumber}: ${pageIdea.title}`);
-          
-          console.log(`🎨 Prompt for ${pageIdea.title}: ${prompt.substring(0, 100)}...`);
+          console.log(`🎨 Generating SIMPLE page ${pageIdea.pageNumber}: ${pageIdea.title}`);
           
           const response = await openai.images.generate({
             model: "dall-e-3",

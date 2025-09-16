@@ -1,12 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import OpenAI from 'openai';
 
-const WORKER_API_BASE = process.env.WORKER_API_BASE || "";
-
-// Initialize OpenAI only if API key is available
-const openai = process.env.OPENAI_API_KEY ? new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-}) : null;
+const WORKER_API_BASE = process.env.WORKER_API_BASE || "https://web-production-0cd9.up.railway.app";
 
 export async function POST(req: NextRequest) {
   try {
@@ -16,105 +10,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Idea is required" }, { status: 400 });
     }
 
-    // Try to generate actual coloring pages with OpenAI first
-    if (openai && process.env.OPENAI_API_KEY) {
-      try {
-        console.log(`Generating 5 coloring page styles for: ${idea}`);
-        
-        // Define the 5 different styles we want to generate
-        const styleDefinitions = [
-          {
-            id: 1,
-            name: 'Bold Cartoon Style',
-            description: 'Thick lines, simple shapes, kid-friendly',
-            lineThickness: 'thick',
-            complexity: 'simple',
-            characterStyle: 'cartoon',
-            prompt: `${idea}, cartoon style coloring page, thick black outlines, simple shapes, bold lines, kid-friendly design, black and white line art only, no shading, clean white background`
-          },
-          {
-            id: 2,
-            name: 'Detailed Realistic',
-            description: 'Fine lines, intricate details, realistic proportions',
-            lineThickness: 'fine',
-            complexity: 'detailed',
-            characterStyle: 'realistic',
-            prompt: `${idea}, realistic detailed coloring page, fine thin lines, intricate details, realistic proportions, complex line art, black and white only, no shading, clean white background`
-          },
-          {
-            id: 3,
-            name: 'Medium Line Art',
-            description: 'Balanced lines, moderate detail, versatile',
-            lineThickness: 'medium',
-            complexity: 'moderate',
-            characterStyle: 'semi-realistic',
-            prompt: `${idea}, medium line weight coloring page, balanced detail level, moderate complexity, clean line art, black and white only, no shading, clean white background`
-          },
-          {
-            id: 4,
-            name: 'Whimsical Fantasy',
-            description: 'Flowing lines, magical elements, dreamy style',
-            lineThickness: 'varied',
-            complexity: 'moderate',
-            characterStyle: 'fantasy',
-            prompt: `${idea}, whimsical fantasy coloring page, flowing curved lines, magical elements, dreamy artistic style, varied line weights, black and white line art only, no shading, clean white background`
-          },
-          {
-            id: 5,
-            name: 'Minimalist Clean',
-            description: 'Very thin lines, geometric, modern style',
-            lineThickness: 'thin',
-            complexity: 'simple',
-            characterStyle: 'geometric',
-            prompt: `${idea}, minimalist coloring page, very thin clean lines, geometric shapes, modern simple design, minimal detail, black and white line art only, no shading, clean white background`
-          }
-        ];
-
-        // Generate all 5 styles in parallel
-        const imagePromises = styleDefinitions.map(async (style) => {
-          const response = await openai.images.generate({
-            model: "dall-e-3",
-            prompt: style.prompt,
-            n: 1,
-            size: "1024x1024",
-            quality: "standard",
-            style: "natural"
-          });
-          
-          if (!response.data || !response.data[0] || !response.data[0].url) {
-            throw new Error(`Failed to generate image for style ${style.name}`);
-          }
-          
-          return {
-            ...style,
-            coloringPageUrl: response.data[0].url,
-            stylePrompt: style.prompt
-          };
-        });
-
-        const generatedStyles = await Promise.all(imagePromises);
-        
-        console.log(`Successfully generated ${generatedStyles.length} coloring page styles`);
-        
-        return NextResponse.json({ 
-          styles: generatedStyles.map(style => ({
-            ...style,
-            basedOnIdea: idea,
-            pageCount: pageCount,
-            generated: true,
-            aiGenerated: true
-          }))
-        });
-
-      } catch (openaiError) {
-        console.error('OpenAI generation failed:', openaiError);
-        // Fall through to worker API or fallback
-      }
-    }
-
-    // Try worker API if OpenAI failed or not configured
+    // Call Railway API (where OpenAI is configured)
     if (WORKER_API_BASE) {
       try {
+        console.log(`Calling Railway API to generate styles for: ${idea}`);
+        console.log(`Railway URL: ${WORKER_API_BASE}/api/generate-styles`);
+        
         const response = await fetch(`${WORKER_API_BASE}/api/generate-styles`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -125,12 +26,18 @@ export async function POST(req: NextRequest) {
           })
         });
 
+        console.log(`Railway API response status: ${response.status}`);
+        
         if (response.ok) {
           const data = await response.json();
+          console.log('Railway API returned styles successfully');
           return NextResponse.json(data);
+        } else {
+          const errorText = await response.text();
+          console.error('Railway API failed:', response.status, errorText);
         }
       } catch (workerError) {
-        console.log('Worker API failed, using fallback:', workerError);
+        console.error('Railway API call failed:', workerError);
       }
     }
 
